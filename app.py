@@ -1,6 +1,9 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import joblib
+import folium
+from streamlit_folium import st_folium
 
 # 1. Konfigurasi Halaman Web
 st.set_page_config(
@@ -9,10 +12,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# 2. Load Model dan Encoder yang sudah didownload dari Colab
-# Pastikan file .pkl ini berada di folder yang SAMA dengan file app.py ini!
-
-
 @st.cache_resource
 def load_artifacts():
     model = joblib.load('model_xgboost_wisata.pkl')
@@ -20,58 +19,57 @@ def load_artifacts():
     le_provinsi = joblib.load('le_provinsi.pkl')
     return model, le_target, le_provinsi
 
-
 model, le_target, le_provinsi = load_artifacts()
 
-# 3. Tampilan Antarmuka Web (UI)
 st.title("🌊 Prediksi Potensi Wisata Pantai Indonesia")
 st.write("Aplikasi berbasis *Machine Learning* (XGBoost) untuk memprediksi tingkat potensi wisata pantai berdasarkan data geospasial dan rating.")
+st.markdown("---")
+
+# Layout menjadi 2 kolom: Kiri untuk Input, Kanan untuk Peta
+col1, col2 = st.columns([1, 1.2])
+
+with col1:
+    st.subheader("📝 Parameter Input")
+    daftar_provinsi = list(le_provinsi.classes_)
+    provinsi_pilihan = st.selectbox("Pilih Provinsi", daftar_provinsi, index=daftar_provinsi.index("Lampung") if "Lampung" in daftar_provinsi else 0)
+    
+    rating_angka = st.slider("Rating Angka Pantai", 1.0, 5.0, 4.5, 0.1)
+    
+    # Titik awal peta disetel ke area Bandar Lampung
+    latitude = st.number_input("Latitude", value=-5.4254, format="%.4f")
+    longitude = st.number_input("Longitude", value=105.2580, format="%.4f")
+
+with col2:
+    st.subheader("🗺️ Peta Lokasi Pantai")
+    # Membuat peta interaktif dengan Folium
+    m = folium.Map(location=[latitude, longitude], zoom_start=11)
+    
+    # Menambahkan penanda (marker) di peta
+    folium.Marker(
+        [latitude, longitude], 
+        popup=f"Titik Pantai di {provinsi_pilihan}", 
+        tooltip="Klik untuk info",
+        icon=folium.Icon(color="red", icon="info-sign")
+    ).add_to(m)
+    
+    # Menampilkan peta di Streamlit
+    st_folium(m, width=400, height=350)
 
 st.markdown("---")
 
-# 4. Form Input untuk Pengguna di Sidebar / Bagian Utama
-st.subheader("📝 Masukkan Parameter Wisata Pantai")
-
-# Dropdown Provinsi berdasarkan data training
-daftar_provinsi = list(le_provinsi.classes_)
-provinsi_pilihan = st.selectbox("Pilih Provinsi", daftar_provinsi)
-
-rating_angka = st.slider("Rating Angka Pantai",
-                         min_value=1.0, max_value=5.0, value=4.5, step=0.1)
-latitude = st.number_input("Latitude (Garis Lintang)",
-                           value=-6.2000, format="%.4f")
-longitude = st.number_input(
-    "Longitude (Garis Bujur)", value=106.8166, format="%.4f")
-
-# 5. Tombol Prediksi
-if st.button("🔍 Prediksi Potensi Sekarang", type="primary"):
+# Tombol Prediksi ditaruh di tengah bawah
+if st.button("🔍 Prediksi Potensi Sekarang", type="primary", use_container_width=True):
     try:
-        # Ubah provinsi teks ke bentuk angka sesuai encoder
         provinsi_encoded = le_provinsi.transform([provinsi_pilihan])[0]
-
-        # Susun data input ke bentuk array sesuai urutan fitur saat training:
-        # ['Rating Angka', 'Latitude', 'Longitude', 'Provinsi']
-        data_input = np.array(
-            [[rating_angka, latitude, longitude, provinsi_encoded]])
-
-        # Lakukan prediksi dengan model XGBoost
+        data_input = np.array([[rating_angka, latitude, longitude, provinsi_encoded]])
+        
         prediksi_encoded = model.predict(data_input)
         hasil_prediksi = le_target.inverse_transform(prediksi_encoded)[0]
-
-        # Tampilkan Hasil ke Web dengan gaya menarik
-        st.markdown("### Hasil Analisis Potensi Wisata:")
-        st.success(
-            f"Berdasarkan model AI, potensi pantai di **{provinsi_pilihan}** ini diprediksi masuk kategori: **{hasil_prediksi.upper()}**")
-
-        # Detail ringkas
-        with st.expander("Lihat Detail Parameter Input"):
-            st.write(f"- **Provinsi:** {provinsi_pilihan}")
-            st.write(f"- **Rating:** {rating_angka}")
-            st.write(f"- **Koordinat:** ({latitude}, {longitude})")
-
+        
+        st.markdown("### 🎯 Hasil Analisis Potensi Wisata:")
+        st.success(f"Berdasarkan koordinat peta dan parameter, potensi pantai ini diprediksi masuk kategori: **{hasil_prediksi.upper()}**")
+            
     except Exception as e:
-        st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
+        st.error(f"Terjadi kesalahan: {e}")
 
-# Catatan kaki
-st.markdown("---")
 st.caption("Developed with Streamlit & XGBoost | Geospatial Data Mining Project")

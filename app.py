@@ -25,39 +25,49 @@ st.title("🌊 Prediksi Potensi Wisata Pantai Indonesia")
 st.write("Aplikasi berbasis *Machine Learning* (XGBoost) untuk memprediksi tingkat potensi wisata pantai berdasarkan data geospasial dan rating.")
 st.markdown("---")
 
-# Layout menjadi 2 kolom: Kiri untuk Input, Kanan untuk Peta
+# Layout menjadi 2 kolom
 col1, col2 = st.columns([1, 1.2])
 
 with col1:
     st.subheader("📝 Parameter Input")
+    
+    # 🌟 TAMBAHAN: Input Nama Pantai
+    nama_pantai = st.text_input("Nama Pantai", value="Pantai Mutun")
+    
     daftar_provinsi = list(le_provinsi.classes_)
     provinsi_pilihan = st.selectbox("Pilih Provinsi", daftar_provinsi, index=daftar_provinsi.index("Lampung") if "Lampung" in daftar_provinsi else 0)
     
     rating_angka = st.slider("Rating Angka Pantai", 1.0, 5.0, 4.5, 0.1)
     
-    # Titik awal peta disetel ke area Bandar Lampung
-    latitude = st.number_input("Latitude", value=-5.4254, format="%.4f")
-    longitude = st.number_input("Longitude", value=105.2580, format="%.4f")
+    latitude = st.number_input("Latitude", value=-5.5312, format="%.4f")
+    longitude = st.number_input("Longitude", value=105.2715, format="%.4f")
 
 with col2:
     st.subheader("🗺️ Peta Lokasi Pantai")
-    # Membuat peta interaktif dengan Folium
-    m = folium.Map(location=[latitude, longitude], zoom_start=11)
+    m = folium.Map(location=[latitude, longitude], zoom_start=12)
     
-    # Menambahkan penanda (marker) di peta
+    # 🌟 TAMBAHAN: Desain Kotak Informasi (Popup) menggunakan HTML
+    popup_info = f"""
+    <div style="font-family: Arial; font-size: 12px; min-width: 180px;">
+        <h4 style="margin-top: 0px; margin-bottom: 5px; color: #1f77b4;">{nama_pantai}</h4>
+        <b>Provinsi:</b> {provinsi_pilihan}<br>
+        <b>Rating:</b> {rating_angka} ⭐<br>
+        <b>Koordinat:</b> {latitude}, {longitude}
+    </div>
+    """
+    
+    # Menambahkan penanda (marker) dengan popup HTML
     folium.Marker(
         [latitude, longitude], 
-        popup=f"Titik Pantai di {provinsi_pilihan}", 
-        tooltip="Klik untuk info",
+        popup=folium.Popup(popup_info, max_width=300), 
+        tooltip="Klik untuk detail pantai",
         icon=folium.Icon(color="red", icon="info-sign")
     ).add_to(m)
     
-    # Menampilkan peta di Streamlit
     st_folium(m, width=400, height=350)
 
 st.markdown("---")
 
-# Tombol Prediksi ditaruh di tengah bawah
 if st.button("🔍 Prediksi Potensi Sekarang", type="primary", use_container_width=True):
     try:
         provinsi_encoded = le_provinsi.transform([provinsi_pilihan])[0]
@@ -67,7 +77,8 @@ if st.button("🔍 Prediksi Potensi Sekarang", type="primary", use_container_wid
         hasil_prediksi = le_target.inverse_transform(prediksi_encoded)[0]
         
         st.markdown("### 🎯 Hasil Analisis Potensi Wisata:")
-        st.success(f"Berdasarkan koordinat peta dan parameter, potensi pantai ini diprediksi masuk kategori: **{hasil_prediksi.upper()}**")
+        # 🌟 TAMBAHAN: Nama pantai ikut dipanggil di hasil prediksi
+        st.success(f"Berdasarkan parameter, potensi **{nama_pantai}** diprediksi masuk kategori: **{hasil_prediksi.upper()}**")
             
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")

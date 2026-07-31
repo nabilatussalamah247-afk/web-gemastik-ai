@@ -158,10 +158,9 @@ st.markdown(
 COLOR_MAP = {
     "sangat bagus": {"marker": "green", "badge": "badge-green", "hex": "#16a34a"},
     "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
-    "cukup bagus": {"marker": "orange", "badge": "badge-orange", "hex": "#ea580c"},
     "biasa": {"marker": "red", "badge": "badge-red", "hex": "#dc2626"},
 }
-PREDIKAT_ORDER = ["Sangat Bagus", "Bagus", "Cukup Bagus", "Biasa"]
+PREDIKAT_ORDER = ["Sangat Bagus", "Bagus", "Biasa"]
 
 DATA_PATH = "dataset_pantai_clean.csv"
 MODEL_PATH = "model_xgboost_wisata.pkl"
@@ -170,7 +169,7 @@ LE_PROVINSI_PATH = "le_provinsi.pkl"
 
 # Kelas dengan sampel sangat sedikit di dataset asli -> prediksi untuk kelas ini
 # secara statistik kurang bisa diandalkan (lihat catatan di docstring atas).
-KELAS_MINORITAS = {"bagus", "cukup bagus", "biasa"}
+KELAS_MINORITAS = {"bagus", "biasa"}
 
 
 # =============================================================================
@@ -181,6 +180,8 @@ def load_data():
     df = pd.read_csv(DATA_PATH)
     df = df.dropna(subset=["Nama Pantai", "Provinsi", "Rating Angka", "Predikat", "Latitude", "Longitude"])
     df["Predikat"] = df["Predikat"].str.strip().str.lower()
+    # Konsolidasi ke 3 kategori: "Cukup Bagus" digabung ke "Biasa"
+    df["Predikat"] = df["Predikat"].replace({"cukup bagus": "biasa"})
     return df
 
 
@@ -346,7 +347,6 @@ with tab_peta:
                 <div style="display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;">
                     <span class="legend-dot"><span class="dot" style="background:#16a34a;"></span>Sangat Bagus</span>
                     <span class="legend-dot"><span class="dot" style="background:#2563eb;"></span>Bagus</span>
-                    <span class="legend-dot"><span class="dot" style="background:#ea580c;"></span>Cukup Bagus</span>
                     <span class="legend-dot"><span class="dot" style="background:#dc2626;"></span>Biasa</span>
                 </div>
                 """,
@@ -399,7 +399,7 @@ with tab_prediksi:
         <div class="caution-box">
         ⚠️ <b>Perlu diketahui:</b> dataset training sangat timpang — sekitar 90% pantai
         berpredikat "Sangat Bagus". Akibatnya model jauh lebih akurat menebak kelas
-        "Sangat Bagus" dibanding kelas lain ("Bagus", "Cukup Bagus", "Biasa"). Anggap hasil
+        "Sangat Bagus" dibanding kelas lain ("Bagus", "Biasa"). Anggap hasil
         prediksi ini sebagai <i>indikasi awal</i>, bukan penilaian pasti.
         </div>
         <br>

@@ -1,7 +1,7 @@
 """
-BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas Pantai
+BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + Analisis NLP
 =============================================================================
-Dibangun dengan Streamlit + Folium + XGBoost + Geolocation.
+Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Text Sentiment Analysis.
 """
 
 import os
@@ -106,7 +106,7 @@ if st.session_state.show_splash:
       """
         <div class="splash-container">
             <h1>🏖️ Selamat Datang di BeachFinder Indonesia</h1>
-            <p>Jelajahi keindahan destinasi pantai nusantara, temukan informasi ulasan terpercaya, dan prediksi kualitas pantai berbasis Machine Learning.</p>
+            <p>Jelajahi keindahan destinasi pantai nusantara, temukan informasi ulasan terpercaya, analisis teks ulasan, dan prediksi kualitas pantai berbasis Machine Learning.</p>
         </div>
         """,
       unsafe_allow_html=True,
@@ -146,7 +146,7 @@ else:
   def load_data():
     df = pd.read_csv(DATA_PATH)
 
-    # Menghapus kolom kategori kotor/kosong dari dataset
+    # Hapus kolom kategori kotor/kosong dari dataset
     kolom_tidak_pakai = [
         "Kategori Pantai",
         "Kategori 1",
@@ -225,6 +225,60 @@ else:
     return R * c
 
 
+  def analisis_ulasan_otomatis(u1, u2, u3):
+    teks_gabungan = f"{str(u1)} {str(u2)} {str(u3)}".lower()
+    if (
+        teks_gabungan == "nan nan nan"
+        or teks_gabungan.strip() == "belum ada ulasan"
+    ):
+      return "Belum cukup data ulasan teks untuk dianalisis oleh sistem."
+
+    kata_positif = [
+        "indah",
+        "bagus",
+        "bersih",
+        "sejuk",
+        "keren",
+        "nyaman",
+        "tenang",
+        "luas",
+        "ramai",
+        "cantik",
+        "mantap",
+    ]
+    kata_negatif = [
+        "kotor",
+        "rusak",
+        "mahal",
+        "macet",
+        "sampah",
+        "sempit",
+        "jauh",
+        "kurang",
+    ]
+
+    skor_positif = sum(1 for kata in kata_positif if kata in teks_gabungan)
+    skor_negatif = sum(1 for kata in kata_negatif if kata in teks_gabungan)
+
+    if skor_positif > skor_negatif:
+      return (
+          "💡 **Analisis Sistem (NLP):** Mayoritas pengunjung memberikan ulasan"
+          " positif, memuji keindahan, kenyamanan, atau kebersihan lokasi"
+          " pantai ini."
+      )
+    elif skor_negatif > skor_positif:
+      return (
+          "💡 **Analisis Sistem (NLP):** Terdapat beberapa catatan atau keluhan"
+          " dari pengunjung terkait fasilitas, kebersihan, atau akses di"
+          " sekitar pantai ini."
+      )
+    else:
+      return (
+          "💡 **Analisis Sistem (NLP):** Ulasan pengunjung bervariasi dengan"
+          " kesan netral terhadap kondisi pantai."
+      )
+
+
   df = load_data()
   model_bundle = load_model_artifacts()
 
@@ -273,7 +327,7 @@ else:
         <div class="hero">
             <h1>🏖️ BeachFinder Indonesia</h1>
             <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter,
-            statistik ringkas, dan prediksi kualitas berbasis lokasi menggunakan XGBoost.</p>
+            analisis teks ulasan, dan prediksi kualitas berbasis lokasi menggunakan XGBoost.</p>
         </div>
         """,
       unsafe_allow_html=True,
@@ -316,7 +370,7 @@ else:
     st.markdown("### 🔍 Cari Destinasi Pantai")
     st.caption(
         "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
-        " rating, predikat, dan ulasan informatifnya."
+        " rating, predikat, dan ringkasan ulasan pengunjung."
     )
 
     list_nama_pantai = sorted(df["Nama Pantai"].unique().tolist())
@@ -350,6 +404,9 @@ else:
           else "Belum ada ulasan"
       )
 
+      # Analisis NLP otomatis ulasan
+      kesimpulan_nlp = analisis_ulasan_otomatis(u1, u2, u3)
+
       st.markdown(
           f"""
             <div class="search-result-box">
@@ -368,6 +425,8 @@ else:
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 1:</b> {u1}</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 2:</b> {u2}</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 3:</b> {u3}</p>
+                        <hr style="margin: 8px 0; border:0; border-top:1px solid #cbd5e1;">
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #0369a1; font-style: italic;">{kesimpulan_nlp}</p>
                     </div>
                 </div>
             </div>

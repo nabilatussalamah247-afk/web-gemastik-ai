@@ -30,27 +30,33 @@ st.set_page_config(
 )
 
 # =============================================================================
-# 2. INISIALISASI SESSION STATE & MANAJEMEN URL QUERY PARAMS (PERSISTENT WISHLIST)
+# 2. INISIALISASI SESSION STATE & MANAJEMEN URL QUERY PARAMS (STABIL BERBASIS COMMA-SEPARATED)
 # =============================================================================
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
 query_params = st.query_params
 if "wishlist" in query_params:
-  param_val = query_params["wishlist"]
-  if isinstance(param_val, str):
-    st.session_state.wishlist = [param_val]
+  val_param = query_params["wishlist"]
+  if isinstance(val_param, list):
+    # Gabungkan jika ada list parameter kembar
+    combined = ",".join(val_param)
+    st.session_state.wishlist = [
+        item.strip() for item in combined.split(",") if item.strip()
+    ]
   else:
-    st.session_state.wishlist = list(param_val)
+    st.session_state.wishlist = [
+        item.strip() for item in str(val_param).split(",") if item.strip()
+    ]
 else:
   if "wishlist" not in st.session_state:
     st.session_state.wishlist = []
 
 
 def update_wishlist_url():
-  """Fungsi utilitas untuk menyinkronkan status wishlist pengguna ke URL browser."""
+  """Fungsi utilitas untuk menyinkronkan status wishlist ke URL browser secara aman."""
   if st.session_state.wishlist:
-    st.query_params["wishlist"] = st.session_state.wishlist
+    st.query_params["wishlist"] = ",".join(st.session_state.wishlist)
   else:
     if "wishlist" in st.query_params:
       del st.query_params["wishlist"]
@@ -575,7 +581,9 @@ else:
           unsafe_allow_html=True,
       )
 
-      is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
+      is_in_wishlist = data_piliations = (
+          data_pilih["Nama Pantai"] in st.session_state.wishlist
+      )
       if not is_in_wishlist:
         if st.button("Simpan ke Pantai Favorit Saya"):
           st.session_state.wishlist.append(data_pilih["Nama Pantai"])
@@ -601,14 +609,12 @@ else:
         " otomatis."
     )
 
-    # Perbaikan: Mengganti komponen geolocation dengan tombol interaktif yang dijamin tampil
     col_geo1, col_geo2 = st.columns([1, 2])
     with col_geo1:
       deteksi_lokasi = st.button(
           "📍 Deteksi Lokasi Saya", use_container_width=True
       )
 
-    # Inisialisasi koordinat default (Bandar Lampung / Pusat)
     u_lat, u_lon = None, None
 
     if deteksi_lokasi:
@@ -617,7 +623,6 @@ else:
         u_lat = user_loc["latitude"]
         u_lon = user_loc["longitude"]
       else:
-        # Fallback jika browser block geolocation cloud deployment
         u_lat, u_lon = -5.4297, 105.2615
         st.info(
             "Menggunakan lokasi estimasi default (Bandar Lampung) karena"

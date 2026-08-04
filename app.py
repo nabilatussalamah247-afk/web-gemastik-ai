@@ -53,7 +53,7 @@ def update_wishlist_url():
 
 
 # =============================================================================
-# FUNGSI BANTU GAMBAR Latar Belakang (Base64 Encoder)
+# FUNGSI BANTU GAMBAR LATAR BELAKANG (Base64 Encoder)
 # =============================================================================
 def get_image_base64(path):
   if os.path.exists(path):
@@ -66,7 +66,7 @@ def get_image_base64(path):
 img_b64 = get_image_base64("1.png")
 
 # =============================================================================
-# STYLING CSS KUSTOM (Tanpa Emoji, Font Tropis Elegan, Hero Background Image)
+# STYLING CSS KUSTOM (Tanpa Emoji, Font Tropis Seragam, Siluet Ombak)
 # =============================================================================
 st.markdown(
     f"""
@@ -116,32 +116,55 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama ---------- */
+    /* ---------- Hero Dashboard Utama dengan Siluet Ombak ---------- */
     .hero {{
-        background: linear-gradient(120deg, #0891b2 0%, #0e7490 45%, #164e63 100%);
+        background: linear-gradient(135deg, #0e7490 0%, #0369a1 50%, #1e3a8a 100%);
         border-radius: 20px;
-        padding: 34px 38px;
+        padding: 38px 42px;
         color: white;
-        margin-bottom: 22px;
-        box-shadow: 0 10px 30px rgba(14, 116, 144, 0.25);
+        margin-bottom: 24px;
+        box-shadow: 0 12px 35px rgba(14, 116, 144, 0.3);
         position: relative;
         overflow: hidden;
     }}
-    .hero::after {{
-        content: ""; position: absolute; right: -40px; top: -40px;
-        width: 180px; height: 180px; border-radius: 50%;
-        background: rgba(255,255,255,0.08);
+    /* Efek Siluet Ombak Dekoratif di Background Hero */
+    .hero::before {{
+        content: "";
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 120px;
+        background: radial-gradient(ellipse at bottom right, rgba(255,255,255,0.12) 0%, transparent 70%);
+        border-radius: 0 0 20px 20px;
+        pointer-events: none;
     }}
-    .hero h1 {{ margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; color: white; }}
-    .hero p {{ margin: 8px 0 0 0; font-size: 15px; opacity: 0.92; max-width: 640px; line-height: 1.4; }}
+    .hero h1 {{
+        font-family: 'Playfair Display', serif;
+        margin: 0;
+        font-size: 36px;
+        font-weight: 800;
+        font-style: italic;
+        letter-spacing: -0.5px;
+        color: #ffffff;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }}
+    .hero p {{
+        margin: 10px 0 0 0;
+        font-size: 15px;
+        opacity: 0.95;
+        max-width: 680px;
+        line-height: 1.5;
+    }}
 
-    /* ---------- Metric Cards ---------- */
+    /* ---------- Metric Cards Bersih & Elegan ---------- */
     .metric-card {{
-        background: white; border-radius: 16px; padding: 18px 20px;
-        border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        background: white; border-radius: 16px; padding: 20px;
+        border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        text-align: center;
     }}
-    .metric-card h2 {{ margin: 6px 0 0 0; font-size: 26px; font-weight: 800; color: #0f172a; }}
-    .metric-card p {{ margin: 2px 0 0 0; font-size: 12.5px; color: #64748b; font-weight: 500; }}
+    .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; }}
+    .metric-card p {{ margin: 0; font-size: 13.5px; color: #475569; font-weight: 700; }}
 
     /* ---------- Badges & Boxes ---------- */
     .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}
@@ -159,7 +182,7 @@ st.markdown(
 )
 
 # =============================================================================
-# KONTROL ALUR TAMPILAN: SPLASH SCREEN LATAR BELAKANG FOTO ELEGAN
+# KONTROL ALUR TAMPILAN: SPLASH SCREEN
 # =============================================================================
 if st.session_state.show_splash:
   st.markdown(
@@ -404,7 +427,7 @@ else:
   ].copy()
 
   # =============================================================================
-  # HERO SECTION UTAMA
+  # HERO SECTION UTAMA DENGAN SILUET OMBAK
   # =============================================================================
   st.markdown(
       """
@@ -416,29 +439,23 @@ else:
       unsafe_allow_html=True,
   )
 
+  # Metric Cards Bersih (Tanpa Teks Ekstra di Atasnya)
   col1, col2, col3, col4 = st.columns(4)
   metric_items = [
-      ("Pantai ditampilkan", len(df_filtered), "Total data aktif"),
+      (len(df_filtered), "Pantai Ditampilkan"),
       (
-          "Rata-rata rating",
           f'{df_filtered["Rating Angka"].mean():.2f}'
           if len(df_filtered)
           else "0.00",
-          "Skor kepuasan",
+          "Rata-rata Rating",
       ),
-      (
-          'Predikat "Bagus"',
-          int((df_filtered["Predikat"] == "bagus").sum()),
-          "Kategori unggulan",
-      ),
-      ("Pantai di Wishlist", len(st.session_state.wishlist), "Disimpan pengguna"),
+      (int((df_filtered["Predikat"] == "bagus").sum()), 'Predikat "Bagus"'),
+      (len(st.session_state.wishlist), "Pantai di Wishlist"),
   ]
-  for col, (label, value, desc) in zip(
-      [col1, col2, col3, col4], metric_items
-  ):
+  for col, (val, label) in zip([col1, col2, col3, col4], metric_items):
     with col:
       st.markdown(
-          f'<div class="metric-card"><h2>{value}</h2><p><b>{label}</b></p><p style="color:#94a3b8; font-size:11px;">{desc}</p></div>',
+          f'<div class="metric-card"><h2>{val}</h2><p>{label}</p></div>',
           unsafe_allow_html=True,
       )
 

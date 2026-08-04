@@ -140,7 +140,7 @@ st.markdown(
 )
 
 # =============================================================================
-# KONSTAN (Hanya Bagus & Biasa)
+# KONSTAN
 # =============================================================================
 COLOR_MAP = {
     "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
@@ -173,6 +173,17 @@ def load_data():
       ]
   )
   df["Predikat"] = df["Predikat"].str.strip().str.lower()
+
+  # Normalisasi wilayah/pulau agar pas menjadi 38 provinsi administratif resmi
+  def map_provinsi(val):
+    val_str = str(val).strip()
+    if val_str in ["Ambon", "Pulau Buru", "Pulau Seram", "Pulau Wetar"]:
+      return "Maluku"
+    elif val_str in ["Ternate"]:
+      return "Maluku Utara"
+    return val_str
+
+  df["Provinsi"] = df["Provinsi"].apply(map_provinsi)
   return df
 
 
@@ -315,14 +326,12 @@ with tab_peta:
       " rating, predikat, dan ulasan informatifnya."
   )
 
-  # Fitur pencarian pantai berdasarkan nama
   list_nama_pantai = sorted(df["Nama Pantai"].unique().tolist())
   pilihan_pencarian = st.selectbox(
       "Pilih atau ketik nama pantai:",
       options=["-- Pilih / Cari Pantai --"] + list_nama_pantai,
   )
 
-  # Jika pantai dipilih/dicari
   if pilihan_pencarian != "-- Pilih / Cari Pantai --":
     data_pilih = df[df["Nama Pantai"] == pilihan_pencarian].iloc[0]
     p_pred = data_pilih["Predikat"].title()

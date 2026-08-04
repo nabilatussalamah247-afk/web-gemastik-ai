@@ -67,28 +67,41 @@ img_splash_b64 = get_image_base64("1.png")
 img_sidebar_b64 = get_image_base64("2.jpg")
 
 # =============================================================================
-# STYLING CSS KUSTOM (Sidebar Background Blur, Font Elegan, Siluet Ombak)
+# STYLING CSS KUSTOM (Font Poppins Semi-Bold, Sidebar Transparan, Perbaikan Expander)
 # =============================================================================
 st.markdown(
     f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Poppins:wght@400;500;600;700&display=swap');
 
-    html, body, [class*="css"] {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
+    html, body, [class*="css"] {{ font-family: 'Poppins', sans-serif; }}
 
     .main {{ background-color: #f4f7fb; }}
     .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }}
 
-    /* ---------- Styling Sidebar dengan Background Blur 80% & Overlay Gelap ---------- */
+    /* ---------- Styling Sidebar dengan Background Blur & Font Poppins ---------- */
     [data-testid="stSidebar"] {{
-        background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.88)), url("data:image/jpeg;base64,{img_sidebar_b64}");
+        background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url("data:image/jpeg;base64,{img_sidebar_b64}");
         background-size: cover;
         background-position: center;
-        color: #f8fafc;
+        color: #ffffff;
     }}
-    [data-testid="stSidebar"] h2, [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] p {{
-        color: #f8fafc !important;
+    [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
+        color: #ffffff !important;
+        font-weight: 600 !important;
     }}
+    
+    /* Menghilangkan Kotak Putih Anomali pada Expander Sidebar */
+    [data-testid="stSidebar"] [data-testid="stExpander"] {{
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 10px !important;
+    }}
+    [data-testid="stSidebar"] details summary p {{
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }}
+
     /* Judul Elegan di Sidebar */
     .sidebar-title {{
         font-family: 'Playfair Display', serif;
@@ -129,12 +142,13 @@ st.markdown(
         text-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }}
     .splash-subtitle {{
-        font-size: 17px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
         color: #e2e8f0;
         max-width: 680px;
         margin: 0 auto 35px auto;
         line-height: 1.6;
-        font-weight: 400;
+        font-weight: 500;
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
@@ -171,8 +185,10 @@ st.markdown(
         text-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }}
     .hero p {{
+        font-family: 'Poppins', sans-serif;
         margin: 10px 0 0 0;
-        font-size: 15px;
+        font-size: 14.5px;
+        font-weight: 500;
         opacity: 0.95;
         max-width: 680px;
         line-height: 1.5;
@@ -185,7 +201,7 @@ st.markdown(
         text-align: center;
     }}
     .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; }}
-    .metric-card p {{ margin: 0; font-size: 13.5px; color: #475569; font-weight: 700; }}
+    .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; }}
 
     /* ---------- Badges & Boxes ---------- */
     .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}
@@ -195,7 +211,8 @@ st.markdown(
     .search-result-box {{ background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 20px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05); margin-bottom: 20px; }}
     .explain-card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; }}
 
-    h1, h2, h3 {{ color: #0f172a; }}
+    h1, h2, h3 {{ color: #0f172a; font-weight: 700; }}
+    p, span, label {{ font-family: 'Poppins', sans-serif; }}
     footer, #MainMenu {{ visibility: hidden; }}
     </style>
     """,
@@ -379,7 +396,7 @@ else:
   model_bundle = load_model_artifacts()
 
   # =============================================================================
-  # SIDEBAR DENGAN FOTO LATAR BELAKANG BLUR DAN FONT ELEGAN
+  # SIDEBAR DENGAN FOTO LATAR BELAKANG BLUR & FONT POPPINS SEMI-BOLD
   # =============================================================================
   with st.sidebar:
     st.markdown(

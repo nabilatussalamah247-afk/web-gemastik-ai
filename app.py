@@ -3,8 +3,6 @@ BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + 
 ==================================================================================================================
 Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
 Versi Long-Form, Sangat Kompleks, Komprehensif, dan Diperkaya Penuh untuk Penilaian Kompetisi Data Mining / Gemastik.
-Modul ini mengintegrasikan pemrosesan data geospasial, analisis ulasan berbasis Natural Language Processing (NLP),
-serta model Machine Learning Extreme Gradient Boosting (XGBoost) untuk klasifikasi destinasi wisata bahari.
 """
 
 import base64
@@ -159,7 +157,7 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama (Background Foto 1.png & Blur) ---------- */
+    /* ---------- Hero Dashboard Utama ---------- */
     .hero {{
         position: relative;
         background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
@@ -625,19 +623,34 @@ else:
               else "#"
           )
 
-          st.markdown(
-              f"""
-                    <div class="search-result-box" style="padding:15px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 4px 0; color:#0f172a;">{r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
-                        <p style="margin:2px 0; font-size:13px;">Provinsi: {r['Provinsi']} | Rating: {r['Rating Angka']} | Kualitas: <b>{r['Predikat'].title()}</b></p>
-                        <p style="margin:8px 0 0 0;">
-                            <a href="{maps_url}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px; margin-right: 15px;">Buka Lokasi di Maps ↗</a>
-                            <a href="{rute_url}" target="_blank" style="text-decoration:none; background-color:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-weight:600; font-size:12px;">Lihat Rute Navigasi ↗</a>
-                        </p>
-                    </div>
-                    """,
-              unsafe_allow_html=True,
-          )
+          # Layout 2 Kolom per Kartu: Kiri untuk Teks/Tombol, Kanan untuk Ilustrasi/Foto Pantai
+          col_card_info, col_card_img = st.columns([3, 1])
+
+          with col_card_info:
+            st.markdown(
+                f"""
+                        <div class="search-result-box" style="padding:15px; margin-bottom:10px; height:100%;">
+                            <h4 style="margin:0 0 4px 0; color:#0f172a;">{r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
+                            <p style="margin:2px 0; font-size:13px;">Provinsi: {r['Provinsi']} | Rating: {r['Rating Angka']} | Kualitas: <b>{r['Predikat'].title()}</b></p>
+                            <p style="margin:12px 0 0 0;">
+                                <a href="{maps_url}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px; margin-right: 15px;">Buka Lokasi di Maps ↗</a>
+                                <a href="{rute_url}" target="_blank" style="text-decoration:none; background-color:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-weight:600; font-size:12px;">Lihat Rute Navigasi ↗</a>
+                            </p>
+                        </div>
+                        """,
+                unsafe_allow_html=True,
+            )
+
+          with col_card_img:
+            # Menampilkan kotak ilustrasi foto pantai yang estetik di sebelah kanan
+            st.markdown(
+                f"""
+                        <div style="background-image: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.5)), url('data:image/png;base64,{img_splash_b64}'); background-size: cover; background-position: center; border-radius: 12px; height: 112px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); border: 1px solid #cbd5e1; margin-bottom: 10px;">
+                            <span style="color: white; font-size: 11px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.6); text-align: center; padding: 0 8px;">🏖️ {r['Nama Pantai']}</span>
+                        </div>
+                        """,
+                unsafe_allow_html=True,
+            )
       else:
         st.warning(
             "Tidak ada pantai yang ditemukan dalam radius 10 km dari lokasi"

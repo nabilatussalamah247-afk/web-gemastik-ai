@@ -2,9 +2,9 @@
 BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Wishlist + Navigasi + Explainable AI
 ==================================================================================================================
 Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
-Versi Long-Form & Comprehensive untuk Penilaian Kompetisi Data Mining / Gemastik.
 """
 
+import base64
 import os
 import altair as alt
 import folium
@@ -20,7 +20,7 @@ from streamlit_geolocation import streamlit_geolocation
 # KONFIGURASI HALAMAN UTAMA STREAMLIT
 # =============================================================================
 st.set_page_config(
-    page_title="BeachFinder Indonesia — Data Mining & ML Dashboard",
+    page_title="BeachFinder Indonesia",
     page_icon="🏖️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -32,7 +32,6 @@ st.set_page_config(
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
-# Pengelolaan query parameters untuk memastikan data wishlist tidak hilang saat refresh
 query_params = st.query_params
 if "wishlist" in query_params:
   param_val = query_params["wishlist"]
@@ -46,7 +45,6 @@ else:
 
 
 def update_wishlist_url():
-  """Sinkronisasi status wishlist ke URL browser agar persistensi data terjaga."""
   if st.session_state.wishlist:
     st.query_params["wishlist"] = st.session_state.wishlist
   else:
@@ -55,33 +53,71 @@ def update_wishlist_url():
 
 
 # =============================================================================
-# STYLING CSS KUSTOM UNTUK ANTARMUKA YANG MODERN, BERSIH, & PROFESIONAL
+# FUNGSI BANTU GAMBAR Latar Belakang (Base64 Encoder)
+# =============================================================================
+def get_image_base64(path):
+  if os.path.exists(path):
+    with open(path, "rb") as f:
+      data = f.read()
+    return base64.b64encode(data).decode()
+  return ""
+
+
+img_b64 = get_image_base64("1.png")
+
+# =============================================================================
+# STYLING CSS KUSTOM (Tanpa Emoji, Font Tropis Elegan, Hero Background Image)
 # =============================================================================
 st.markdown(
-    """
+    f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
+    html, body, [class*="css"] {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
 
-    .main { background-color: #f4f7fb; }
-    .block-container { padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }
+    .main {{ background-color: #f4f7fb; }}
+    .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }}
 
-    /* ---------- Splash Screen Styling ---------- */
-    .splash-container {
-        text-align: center;
-        padding: 50px 20px;
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    /* ---------- Splash Screen Background Full Image & Typography ---------- */
+    .splash-hero {{
+        position: relative;
+        width: 100%;
+        min-height: 85vh;
+        background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)), url("data:image/png;base64,{img_b64}");
+        background-size: cover;
+        background-position: center;
         border-radius: 24px;
-        color: white;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
-        margin-top: 20px;
-    }
-    .splash-container h1 { font-size: 38px; font-weight: 800; margin-bottom: 12px; color: #ffffff; }
-    .splash-container p { font-size: 16px; color: #94a3b8; max-width: 650px; margin: 0 auto 30px auto; line-height: 1.5; }
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+        box-shadow: 0 25px 50px rgba(15, 23, 42, 0.4);
+        margin-top: 10px;
+    }}
+    .splash-title {{
+        font-family: 'Playfair Display', serif;
+        font-size: 52px;
+        font-weight: 800;
+        font-style: italic;
+        color: #ffffff;
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }}
+    .splash-subtitle {{
+        font-size: 17px;
+        color: #e2e8f0;
+        max-width: 680px;
+        margin: 0 auto 35px auto;
+        line-height: 1.6;
+        font-weight: 400;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }}
 
-    /* ---------- Hero Section ---------- */
-    .hero {
+    /* ---------- Hero Dashboard Utama ---------- */
+    .hero {{
         background: linear-gradient(120deg, #0891b2 0%, #0e7490 45%, #164e63 100%);
         border-radius: 20px;
         padding: 34px 38px;
@@ -90,69 +126,64 @@ st.markdown(
         box-shadow: 0 10px 30px rgba(14, 116, 144, 0.25);
         position: relative;
         overflow: hidden;
-    }
-    .hero::after {
+    }}
+    .hero::after {{
         content: ""; position: absolute; right: -40px; top: -40px;
         width: 180px; height: 180px; border-radius: 50%;
         background: rgba(255,255,255,0.08);
-    }
-    .hero h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
-    .hero p { margin: 8px 0 0 0; font-size: 15px; opacity: 0.92; max-width: 640px; line-height: 1.4; }
+    }}
+    .hero h1 {{ margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.5px; color: white; }}
+    .hero p {{ margin: 8px 0 0 0; font-size: 15px; opacity: 0.92; max-width: 640px; line-height: 1.4; }}
 
     /* ---------- Metric Cards ---------- */
-    .metric-card {
+    .metric-card {{
         background: white; border-radius: 16px; padding: 18px 20px;
         border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
-    }
-    .metric-card h2 { margin: 6px 0 0 0; font-size: 26px; font-weight: 800; color: #0f172a; }
-    .metric-card p { margin: 2px 0 0 0; font-size: 12.5px; color: #64748b; font-weight: 500; }
+    }}
+    .metric-card h2 {{ margin: 6px 0 0 0; font-size: 26px; font-weight: 800; color: #0f172a; }}
+    .metric-card p {{ margin: 2px 0 0 0; font-size: 12.5px; color: #64748b; font-weight: 500; }}
 
-    /* ---------- Badges & Containers ---------- */
-    .badge { display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }
-    .badge-blue { background-color: #2563eb; }
-    .badge-red { background-color: #dc2626; }
-    .result-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px; text-align: center; }
-    .search-result-box { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 20px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05); margin-bottom: 20px; }
-    .explain-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; }
+    /* ---------- Badges & Boxes ---------- */
+    .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}
+    .badge-blue {{ background-color: #2563eb; }}
+    .badge-red {{ background-color: #dc2626; }}
+    .result-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px; text-align: center; }}
+    .search-result-box {{ background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 20px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05); margin-bottom: 20px; }}
+    .explain-card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; }}
 
-    h1, h2, h3 { color: #0f172a; }
-    footer, #MainMenu { visibility: hidden; }
+    h1, h2, h3 {{ color: #0f172a; }}
+    footer, #MainMenu {{ visibility: hidden; }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
 # =============================================================================
-# KONTROL ALUR TAMPILAN: SPLASH SCREEN / DASHBOARD UTAMA APLIKASI
+# KONTROL ALUR TAMPILAN: SPLASH SCREEN LATAR BELAKANG FOTO ELEGAN
 # =============================================================================
 if st.session_state.show_splash:
   st.markdown(
-      """
-        <div class="splash-container">
-            <h1>🏖️ Selamat Datang di BeachFinder Indonesia</h1>
-            <p>Platform Dashboard Cerdas Berbasis Data Mining, Natural Language Processing (NLP), Geospatial Analysis, dan Machine Learning XGBoost untuk Eksplorasi Wisata Bahari Nusantara.</p>
+      f"""
+        <div class="splash-hero">
+            <div class="splash-title">BeachFinder Indonesia</div>
+            <div class="splash-subtitle">
+                Platform Dashboard Cerdas Berbasis Data Mining, Natural Language Processing (NLP), Geospatial Analysis, dan Machine Learning XGBoost untuk Eksplorasi Wisata Bahari Nusantara.
+            </div>
         </div>
         """,
       unsafe_allow_html=True,
   )
 
-  col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
-  with col_img2:
-    if os.path.exists("1.png"):
-      st.image(
-          "1.png",
-          use_container_width=True,
-          caption="Eksplorasi Destinasi Pantai Terbaik di Indonesia",
-      )
-
+  col_s1, col_s2, col_s3 = st.columns([1, 1, 1])
+  with col_s2:
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🚀 Mulai Eksplorasi Dashboard Sekarang", use_container_width=True):
+    if st.button("Mulai Eksplorasi Dashboard Sekarang", use_container_width=True):
       st.session_state.show_splash = False
       st.rerun()
 
 else:
   # =============================================================================
-  # LOGIKA UTAMA & PEMUATAN DATASET SERTA MODEL MACHINE LEARNING
+  # DASHBOARD UTAMA APLIKASI
   # =============================================================================
   COLOR_MAP = {
       "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
@@ -168,7 +199,6 @@ else:
 
   @st.cache_data
   def load_data():
-    """Memuat dan membersihkan dataset CSV dari file penyimpanan lokal."""
     df = pd.read_csv(DATA_PATH)
     kolom_tidak_pakai = [
         "Kategori Pantai",
@@ -208,7 +238,6 @@ else:
 
   @st.cache_resource
   def load_model_artifacts():
-    """Memuat artefak model XGBoost dan LabelEncoder yang telah dilatih."""
     if not (
         os.path.exists(MODEL_PATH)
         and os.path.exists(LE_TARGET_PATH)
@@ -222,24 +251,20 @@ else:
 
 
   def stars_from_rating(rating: float) -> str:
-    """Mengonversi nilai rating angka menjadi simbol bintang emoji."""
     penuh = int(round(rating))
     penuh = max(0, min(5, penuh))
-    return "⭐" * penuh
+    return "★" * penuh
 
 
   def badge_class(predikat_lower: str) -> str:
-    """Menentukan kelas CSS badge berdasarkan predikat pantai."""
     return COLOR_MAP.get(predikat_lower, {}).get("badge", "badge-gray")
 
 
   def marker_color(predikat_lower: str) -> str:
-    """Menentukan warna penanda pada peta Folium."""
     return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
 
 
   def hitung_jarak_km(lat1, lon1, lat2, lon2):
-    """Menghitung jarak geografis dalam kilometer menggunakan rumus Haversine."""
     R = 6371.0
     lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
@@ -253,7 +278,6 @@ else:
 
 
   def analisis_ulasan_otomatis(u1, u2, u3):
-    """Fungsi NLP Sederhana untuk mengekstrak sentimen ulasan pengunjung."""
     teks_gabungan = f"{str(u1)} {str(u2)} {str(u3)}".lower()
     if (
         teks_gabungan == "nan nan nan"
@@ -290,20 +314,20 @@ else:
 
     if skor_positif > skor_negatif:
       return (
-          "💡 **Analisis Sistem (NLP):** Mayoritas pengunjung memberikan ulasan"
+          "Analisis Sistem (NLP): Mayoritas pengunjung memberikan ulasan"
           " positif, memuji keindahan, kenyamanan, atau kebersihan lokasi"
           " pantai ini."
       )
     elif skor_negatif > skor_positif:
       return (
-          "💡 **Analisis Sistem (NLP):** Terdapat beberapa catatan atau keluhan"
-          " dari pengunjung terkait fasilitas, kebersihan, atau akses di"
-          " sekitar pantai ini."
+          "Analisis Sistem (NLP): Terdapat beberapa catatan atau keluhan dari"
+          " pengunjung terkait fasilitas, kebersihan, atau akses di sekitar"
+          " pantai ini."
       )
     else:
       return (
-          "💡 **Analisis Sistem (NLP):** Ulasan pengunjung bervariasi dengan"
-          " kesan netral terhadap kondisi pantai."
+          "Analisis Sistem (NLP): Ulasan pengunjung bervariasi dengan kesan"
+          " netral terhadap kondisi pantai."
       )
 
 
@@ -314,11 +338,11 @@ else:
   # SIDEBAR KONTROL FILTER PETA & STATISTIK WISHLIST
   # =============================================================================
   with st.sidebar:
-    st.markdown("## 🏖️ BeachFinder")
+    st.markdown("## BeachFinder")
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
     st.markdown("---")
 
-    with st.expander("🔎 Filter Peta Interaktif", expanded=True):
+    with st.expander("Filter Peta Interaktif", expanded=True):
       all_provinsi = sorted(df["Provinsi"].unique().tolist())
       provinsi_pilihan = st.multiselect(
           "Provinsi", options=all_provinsi, default=all_provinsi
@@ -346,23 +370,31 @@ else:
 
     st.markdown("---")
 
-    # Manajemen Wishlist di Sidebar
     with st.expander(
-        f"❤️ Pantai Favorit Saya ({len(st.session_state.wishlist)})",
-        expanded=False,
+        f"Pantai Favorit Saya ({len(st.session_state.wishlist)})", expanded=False
     ):
       if not st.session_state.wishlist:
         st.info("Belum ada pantai favorit disimpan.")
       else:
         for w_item in st.session_state.wishlist:
           st.markdown(f"• {w_item}")
-        if st.button("🗑️ Kosongkan Wishlist", use_container_width=True):
+        if st.button("Kosongkan Wishlist", use_container_width=True):
           st.session_state.wishlist = []
           update_wishlist_url()
           st.rerun()
 
+    with st.expander("Tentang Model ML (XGBoost)", expanded=False):
+      st.markdown(
+          """
+            * Algoritme: XGBoost Classifier.
+            * Fitur Input: Latitude, Longitude, & Provinsi.
+            * Target Kelas: Predikat kualitas (Bagus vs Biasa).
+            * Transparansi: Model mempelajari pola spasial dan ulasan sosio-geografis untuk rekomendasi akurat.
+            """
+      )
+
     st.markdown("---")
-    st.caption("Dibangun dengan Streamlit · Folium · XGBoost · Data Mining")
+    st.caption("Dibangun dengan Streamlit · Folium · XGBoost")
 
   kualitas_pilihan_lower = [k.lower() for k in kualitas_pilihan]
   df_filtered = df[
@@ -377,55 +409,53 @@ else:
   st.markdown(
       """
         <div class="hero">
-            <h1>🏖️ BeachFinder Indonesia</h1>
-            <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter,
-            analisis teks ulasan NLP, navigasi rute perjalanan, wishlist, dan prediksi kualitas berbasis Machine Learning.</p>
+            <h1>BeachFinder Indonesia</h1>
+            <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter, analisis teks ulasan NLP, navigasi rute perjalanan, wishlist, dan prediksi kualitas berbasis Machine Learning.</p>
         </div>
         """,
       unsafe_allow_html=True,
   )
 
-  # Metric Cards Atas
   col1, col2, col3, col4 = st.columns(4)
   metric_items = [
-      ("🏝️", len(df_filtered), "Pantai ditampilkan"),
+      ("Pantai ditampilkan", len(df_filtered), "Total data aktif"),
       (
-          "⭐",
+          "Rata-rata rating",
           f'{df_filtered["Rating Angka"].mean():.2f}'
           if len(df_filtered)
           else "0.00",
-          "Rata-rata rating",
+          "Skor kepuasan",
       ),
       (
-          "🌟",
-          int((df_filtered["Predikat"] == "bagus").sum()),
           'Predikat "Bagus"',
+          int((df_filtered["Predikat"] == "bagus").sum()),
+          "Kategori unggulan",
       ),
-      ("❤️", len(st.session_state.wishlist), "Pantai di Wishlist"),
+      ("Pantai di Wishlist", len(st.session_state.wishlist), "Disimpan pengguna"),
   ]
-  for col, (icon, value, label) in zip([col1, col2, col3, col4], metric_items):
+  for col, (label, value, desc) in zip(
+      [col1, col2, col3, col4], metric_items
+  ):
     with col:
       st.markdown(
-          f'<div class="metric-card"><span class="icon">{icon}</span>'
-          f"<h2>{value}</h2><p>{label}</p></div>",
+          f'<div class="metric-card"><h2>{value}</h2><p><b>{label}</b></p><p style="color:#94a3b8; font-size:11px;">{desc}</p></div>',
           unsafe_allow_html=True,
       )
 
   st.markdown("<br>", unsafe_allow_html=True)
 
   # =============================================================================
-  # TABS UTAMA APLIKASI (Termasuk Tab Transparansi Model ML)
+  # TABS UTAMA APLIKASI
   # =============================================================================
   tab_peta, tab_prediksi, tab_data, tab_model = st.tabs([
-      "🗺️ Peta & Eksplorasi",
-      "🔮 Prediksi Kualitas Pantai",
-      "📋 Tabel Data & Unduh",
-      "📊 Tentang Model ML",
+      "Peta & Eksplorasi",
+      "Prediksi Kualitas Pantai",
+      "Tabel Data & Unduh",
+      "Tentang Model ML",
   ])
 
   with tab_peta:
-    # 1. Fitur Pencarian Nama Pantai & Analisis NLP
-    st.markdown("### 🔍 Cari Destinasi Pantai")
+    st.markdown("### Cari Destinasi Pantai")
     st.caption(
         "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
         " rating, predikat, ringkasan ulasan NLP, dan simpan ke favorit."
@@ -467,18 +497,18 @@ else:
       st.markdown(
           f"""
             <div class="search-result-box">
-                <h3 style="margin-top:0; color:#0f172a;">🌊 {data_pilih['Nama Pantai']}</h3>
+                <h3 style="margin-top:0; color:#0f172a;">{data_pilih['Nama Pantai']}</h3>
                 <hr style="margin: 8px 0 14px 0; border:0; border-top:1px solid #e2e8f0;">
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 250px;">
-                        <p style="margin: 4px 0;">📍 <b>Provinsi:</b> {data_pilih['Provinsi']}</p>
-                        <p style="margin: 4px 0;">⭐ <b>Rating Angka:</b> {data_pilih['Rating Angka']} {p_stars}</p>
-                        <p style="margin: 4px 0;">🏖️ <b>Predikat Kualitas:</b> <span class="badge {badge_class(data_pilih['Predikat'])}">{p_pred}</span></p>
-                        <p style="margin: 4px 0;">💬 <b>Jumlah Ulasan:</b> {data_pilih.get('Jumlah Ulasan', 'N/A')}</p>
+                        <p style="margin: 4px 0;"><b>Provinsi:</b> {data_pilih['Provinsi']}</p>
+                        <p style="margin: 4px 0;"><b>Rating Angka:</b> {data_pilih['Rating Angka']} {p_stars}</p>
+                        <p style="margin: 4px 0;"><b>Predikat Kualitas:</b> <span class="badge {badge_class(data_pilih['Predikat'])}">{p_pred}</span></p>
+                        <p style="margin: 4px 0;"><b>Jumlah Ulasan:</b> {data_pilih.get('Jumlah Ulasan', 'N/A')}</p>
                         <p style="margin: 8px 0 0 0;"><a href="{p_link}" target="_blank" style="text-decoration: none; color: #0284c7; font-weight: 600;">Buka Lokasi di Google Maps ↗</a></p>
                     </div>
                     <div style="flex: 1.5; min-width: 300px; background: #f8fafc; padding: 12px 16px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <p style="margin: 0 0 6px 0; font-weight: 700; color: #334155; font-size: 13px;">💬 Informasi Ulasan Pengunjung:</p>
+                        <p style="margin: 0 0 6px 0; font-weight: 700; color: #334155; font-size: 13px;">Informasi Ulasan Pengunjung:</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 1:</b> {u1}</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 2:</b> {u2}</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 3:</b> {u3}</p>
@@ -493,7 +523,7 @@ else:
 
       is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
       if not is_in_wishlist:
-        if st.button("❤️ Simpan ke Pantai Favorit Saya"):
+        if st.button("Simpan ke Pantai Favorit Saya"):
           st.session_state.wishlist.append(data_pilih["Nama Pantai"])
           update_wishlist_url()
           st.success(
@@ -502,7 +532,7 @@ else:
           )
           st.rerun()
       else:
-        if st.button("❌ Hapus dari Pantai Favorit Saya"):
+        if st.button("Hapus dari Pantai Favorit Saya"):
           st.session_state.wishlist.remove(data_pilih["Nama Pantai"])
           update_wishlist_url()
           st.warning(
@@ -510,9 +540,8 @@ else:
           )
           st.rerun()
 
-    # 2. Fitur Pencari Pantai Terdekat & Navigasi Rute
     st.markdown("---")
-    st.markdown("### 📍 Cari Pantai Terdekat dari Lokasi Anda")
+    st.markdown("### Cari Pantai Terdekat dari Lokasi Anda")
     st.caption("Aktifkan izin lokasi browser untuk melacak pantai dalam 10 km.")
 
     user_loc = streamlit_geolocation()
@@ -546,11 +575,11 @@ else:
           st.markdown(
               f"""
                     <div class="search-result-box" style="padding:15px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 4px 0; color:#0f172a;">🌊 {r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
-                        <p style="margin:2px 0; font-size:13px;">📍 Provinsi: {r['Provinsi']} | ⭐ Rating: {r['Rating Angka']} | 🏖️ Kualitas: <b>{r['Predikat'].title()}</b></p>
+                        <h4 style="margin:0 0 4px 0; color:#0f172a;">{r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
+                        <p style="margin:2px 0; font-size:13px;">Provinsi: {r['Provinsi']} | Rating: {r['Rating Angka']} | Kualitas: <b>{r['Predikat'].title()}</b></p>
                         <p style="margin:8px 0 0 0;">
                             <a href="{maps_url}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px; margin-right: 15px;">Buka Lokasi di Maps ↗</a>
-                            <a href="{rute_url}" target="_blank" style="text-decoration:none; background-color:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-weight:600; font-size:12px;">🧭 Lihat Rute Navigasi ↗</a>
+                            <a href="{rute_url}" target="_blank" style="text-decoration:none; background-color:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-weight:600; font-size:12px;">Lihat Rute Navigasi ↗</a>
                         </p>
                     </div>
                     """,
@@ -562,11 +591,10 @@ else:
             " Anda."
         )
     else:
-      st.info("👆 Klik tombol di atas dan izinkan akses lokasi di browser.")
+      st.info("Klik tombol di atas dan izinkan akses lokasi di browser.")
 
-    # 3. Peta Interaktif Sebaran Pantai
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 🗺️ Peta Sebaran Destinasi Pantai")
+    st.markdown("### Peta Sebaran Destinasi Pantai")
 
     if len(df_filtered) == 0:
       st.warning("Tidak ada data yang cocok dengan filter saat ini.")
@@ -607,13 +635,13 @@ else:
         popup_html = f"""
                 <div style="font-family: 'Segoe UI', sans-serif; width: 240px; font-size: 11.5px;">
                     <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
-                    <p style="margin: 2px 0;">📍 <b>Provinsi:</b> {row['Provinsi']}</p>
-                    <p style="margin: 2px 0;">⭐ <b>Rating:</b> {row['Rating Angka']} {stars}</p>
-                    <p style="margin: 2px 0 6px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
+                    <p style="margin: 2px 0;"><b>Provinsi:</b> {row['Provinsi']}</p>
+                    <p style="margin: 2px 0;"><b>Rating:</b> {row['Rating Angka']} {stars}</p>
+                    <p style="margin: 2px 0 6px 0;"><b>Kualitas:</b> {predikat_title}</p>
                     <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
-                    <p style="margin: 2px 0;"><b>💬 Ulasan 1:</b> {u1}</p>
-                    <p style="margin: 2px 0;"><b>💬 Ulasan 2:</b> {u2}</p>
-                    <p style="margin: 2px 0 6px 0;"><b>💬 Ulasan 3:</b> {u3}</p>
+                    <p style="margin: 2px 0;"><b>Ulasan 1:</b> {u1}</p>
+                    <p style="margin: 2px 0;"><b>Ulasan 2:</b> {u2}</p>
+                    <p style="margin: 2px 0 6px 0;"><b>Ulasan 3:</b> {u3}</p>
                     {f'<a href="{link}" target="_blank">Buka di Google Maps ↗</a>' if isinstance(link, str) and link else ''}
                 </div>
                 """
@@ -628,7 +656,7 @@ else:
       st_folium(m, use_container_width=True, height=560, returned_objects=[])
 
   with tab_prediksi:
-    st.markdown("### 🔮 Prediksi Kualitas Pantai Baru")
+    st.markdown("### Prediksi Kualitas Pantai Baru")
     st.caption(
         "Menaksir predikat kualitas sebuah titik pantai baru berdasarkan wilayah"
         " provinsi yang dipilih."
@@ -697,7 +725,7 @@ else:
           st.error(f"Terjadi kesalahan saat memprediksi: {e}")
 
   with tab_data:
-    st.markdown("### 📋 Tabel Data Pantai")
+    st.markdown("### Tabel Data Pantai")
     tampil = df_filtered.copy()
     tampil["Predikat"] = tampil["Predikat"].str.title()
     kolom_tampil = [
@@ -720,14 +748,14 @@ else:
 
     csv_bytes = tampil[kolom_tampil].to_csv(index=False).encode("utf-8")
     st.download_button(
-        "⬇️ Unduh data (CSV)",
+        "Unduh data (CSV)",
         data=csv_bytes,
         file_name="pantai_terfilter.csv",
         mime="text/csv",
     )
 
   with tab_model:
-    st.markdown("### 📊 Transparansi & Penjelasan Model Machine Learning (XAI)")
+    st.markdown("### Transparansi & Penjelasan Model Machine Learning (XAI)")
     st.caption(
         "Dokumentasi teknis arsitektur model dan metodologi Data Mining yang"
         " digunakan dalam sistem BeachFinder Indonesia."
@@ -738,7 +766,7 @@ else:
       st.markdown(
           """
             <div class="explain-card">
-                <h4>🧠 Arsitektur Algoritme (XGBoost)</h4>
+                <h4>Arsitektur Algoritme (XGBoost)</h4>
                 <p style="font-size: 13.5px; color: #475569;">
                 Sistem ini menggunakan algoritme <b>Extreme Gradient Boosting (XGBoost)</b>, sebuah teknik ensemble learning berbasis pohon keputusan (decision trees) yang sangat tangguh dalam menangani data tabular pariwisata berdimensi tinggi.
                 </p>
@@ -750,7 +778,7 @@ else:
       st.markdown(
           """
             <div class="explain-card">
-                <h4>🎯 Fitur Input & Variabel Target</h4>
+                <h4>Fitur Input & Variabel Target</h4>
                 <p style="font-size: 13.5px; color: #475569;">
                 Model dilatih menggunakan tiga fitur utama: <b>Latitude</b>, <b>Longitude</b>, dan <b>Provinsi</b> (yang di-encode). Target klasifikasi membagi kualitas destinasi menjadi dua kategori: <b>Bagus</b> dan <b>Biasa</b>.
                 </p>
@@ -762,7 +790,7 @@ else:
     st.markdown(
         """
         <div class="explain-card">
-            <h4>💡 Mengapa Pendekatan Data Mining Ini Efektif?</h4>
+            <h4>Mengapa Pendekatan Data Mining Ini Efektif?</h4>
             <p style="font-size: 13.5px; color: #475569; margin-bottom: 6px;">
             1. <b>Korelasi Spasial:</b> Posisi geografis (koordinat peta) terbukti memiliki pola klaster yang kuat terhadap kualitas suatu destinasi pariwisata pantai.<br>
             2. <b>Validasi Silang (Cross-Validation):</b> Proses pembersihan data (data cleaning) memastikan tidak ada nilai kosong (*missing values*) pada atribut krusial.<br>

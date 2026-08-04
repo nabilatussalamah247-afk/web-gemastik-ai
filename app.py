@@ -883,7 +883,7 @@ else:
 
       if len(df_top5) > 0:
         st.markdown(
-            f"#### 🏆 Top 5 Destinasi Populer di Provinsi {selected_prov_top5}"
+            f"#### Top 5 Destinasi Populer di Provinsi {selected_prov_top5}"
         )
 
         chart = (
@@ -931,7 +931,7 @@ else:
         )
     else:
       st.info(
-          "👆 Silakan pilih salah satu provinsi di atas untuk menampilkan"
+          " Silakan pilih salah satu provinsi di atas untuk menampilkan"
           " grafik Top 5 pantai."
       )
 

@@ -75,7 +75,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Font, Background Blur, Animasi Siluet Ombak Kartu)
+# 4. PENGATURAN STYLING KUSTOM CSS (Background Putih Solid & Siluet Ombak Rapi)
 # =============================================================================
 st.markdown(
     f"""
@@ -185,25 +185,29 @@ st.markdown(
         color: #ffffff !important;
     }}
 
-    /* ---------- Metric Cards dengan Siluet Ombak (3.jpg) & Animasi Hover ---------- */
+    /* ---------- Metric Cards dengan Background Putih Solid & Siluet Ombak Rapi ---------- */
     .metric-card {{
         position: relative;
-        background: #ffffff url("data:image/jpeg;base64,{img_wave_b64}") no-repeat bottom right;
-        background-size: 110px auto;
+        background-color: #ffffff !important;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url("data:image/jpeg;base64,{img_wave_b64}");
+        background-repeat: no-repeat;
+        background-position: bottom right;
+        background-size: 120px auto;
         border-radius: 16px;
         padding: 20px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
         text-align: center;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
     }}
     .metric-card:hover {{
         transform: translateY(-5px);
         box-shadow: 0 12px 25px rgba(14, 116, 144, 0.15);
         border-color: #0284c7;
     }}
-    .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; }}
-    .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; }}
+    .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; position: relative; z-index: 2; }}
+    .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; position: relative; z-index: 2; }}
 
     /* ---------- Badges & Kotak Konten ---------- */
     .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}

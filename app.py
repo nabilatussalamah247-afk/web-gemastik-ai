@@ -63,10 +63,11 @@ def get_image_base64(path):
   return ""
 
 
-img_b64 = get_image_base64("1.png")
+img_splash_b64 = get_image_base64("1.png")
+img_sidebar_b64 = get_image_base64("2.jpg")
 
 # =============================================================================
-# STYLING CSS KUSTOM (Tanpa Emoji, Font Tropis Seragam, Siluet Ombak)
+# STYLING CSS KUSTOM (Sidebar Background Blur, Font Elegan, Siluet Ombak)
 # =============================================================================
 st.markdown(
     f"""
@@ -78,12 +79,33 @@ st.markdown(
     .main {{ background-color: #f4f7fb; }}
     .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }}
 
+    /* ---------- Styling Sidebar dengan Background Blur 80% & Overlay Gelap ---------- */
+    [data-testid="stSidebar"] {{
+        background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.88)), url("data:image/jpeg;base64,{img_sidebar_b64}");
+        background-size: cover;
+        background-position: center;
+        color: #f8fafc;
+    }}
+    [data-testid="stSidebar"] h2, [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] p {{
+        color: #f8fafc !important;
+    }}
+    /* Judul Elegan di Sidebar */
+    .sidebar-title {{
+        font-family: 'Playfair Display', serif;
+        font-size: 32px;
+        font-weight: 800;
+        font-style: italic;
+        color: #ffffff !important;
+        margin-bottom: 0px;
+        letter-spacing: -0.5px;
+    }}
+
     /* ---------- Splash Screen Background Full Image & Typography ---------- */
     .splash-hero {{
         position: relative;
         width: 100%;
         min-height: 85vh;
-        background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)), url("data:image/png;base64,{img_b64}");
+        background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)), url("data:image/png;base64,{img_splash_b64}");
         background-size: cover;
         background-position: center;
         border-radius: 24px;
@@ -127,7 +149,6 @@ st.markdown(
         position: relative;
         overflow: hidden;
     }}
-    /* Efek Siluet Ombak Dekoratif di Background Hero */
     .hero::before {{
         content: "";
         position: absolute;
@@ -358,10 +379,12 @@ else:
   model_bundle = load_model_artifacts()
 
   # =============================================================================
-  # SIDEBAR KONTROL FILTER PETA & STATISTIK WISHLIST
+  # SIDEBAR DENGAN FOTO LATAR BELAKANG BLUR DAN FONT ELEGAN
   # =============================================================================
   with st.sidebar:
-    st.markdown("## BeachFinder")
+    st.markdown(
+        '<div class="sidebar-title">BeachFinder</div>', unsafe_allow_html=True
+    )
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
     st.markdown("---")
 
@@ -439,7 +462,7 @@ else:
       unsafe_allow_html=True,
   )
 
-  # Metric Cards Bersih (Tanpa Teks Ekstra di Atasnya)
+  # Metric Cards Bersih
   col1, col2, col3, col4 = st.columns(4)
   metric_items = [
       (len(df_filtered), "Pantai Ditampilkan"),

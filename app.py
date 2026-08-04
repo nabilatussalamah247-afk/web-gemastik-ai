@@ -1,7 +1,7 @@
 """
-BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Wishlist
-======================================================================================
-Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist.
+BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Persistent Wishlist
+==================================================================================================
+Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Query Params Wishlist.
 """
 
 import os
@@ -26,13 +26,33 @@ st.set_page_config(
 )
 
 # =============================================================================
-# INISIALISASI SESSION STATE (Wishlist & Splash Screen)
+# INISIALISASI SESSION STATE & QUERY PARAMS (PERSISTENT WISHLIST)
 # =============================================================================
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
-if "wishlist" not in st.session_state:
-  st.session_state.wishlist = []
+# Membaca data wishlist dari URL query params agar aman saat di-refresh
+query_params = st.query_params
+if "wishlist" in query_params:
+  # Query params bisa berupa string tunggal atau list, kita normalisasi ke list
+  param_val = query_params["wishlist"]
+  if isinstance(param_val, str):
+    st.session_state.wishlist = [param_val]
+  else:
+    st.session_state.wishlist = list(param_val)
+else:
+  if "wishlist" not in st.session_state:
+    st.session_state.wishlist = []
+
+
+def update_wishlist_url():
+  """Fungsi untuk menyinkronkan wishlist ke URL browser"""
+  if st.session_state.wishlist:
+    st.query_params["wishlist"] = st.session_state.wishlist
+  else:
+    if "wishlist" in st.query_params:
+      del st.query_params["wishlist"]
+
 
 # =============================================================================
 # CSS KUSTOM — TAMPILAN MODERN & ELEGAN
@@ -282,7 +302,7 @@ else:
   df = load_data()
   model_bundle = load_model_artifacts()
 
-  # Sidebar — Filter yang Lebih Rapih Menggunakan Expander
+  # Sidebar — Filter yang Rapih Menggunakan Expander
   with st.sidebar:
     st.markdown("## 🏖️ BeachFinder")
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
@@ -368,7 +388,7 @@ else:
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Tabs Utama (Ditambah Tab ke-4: ❤️ Pantai Favorit Saya)
+  # Tabs Utama
   tab_peta, tab_prediksi, tab_data, tab_wishlist = st.tabs([
       "🗺️ Peta Interaktif",
       "🔮 Prediksi Kualitas Pantai",
@@ -443,11 +463,12 @@ else:
           unsafe_allow_html=True,
       )
 
-      # Tombol Wishlist Interaktif
+      # Tombol Wishlist Interaktif dengan Sinkronisasi URL
       is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
       if not is_in_wishlist:
         if st.button("❤️ Simpan ke Pantai Favorit Saya"):
           st.session_state.wishlist.append(data_pilih["Nama Pantai"])
+          update_wishlist_url()
           st.success(
               f"Berhasil menambahkan **{data_pilih['Nama Pantai']}** ke"
               " Favorit!"
@@ -456,6 +477,7 @@ else:
       else:
         if st.button("❌ Hapus dari Pantai Favorit Saya"):
           st.session_state.wishlist.remove(data_pilih["Nama Pantai"])
+          update_wishlist_url()
           st.warning(
               f"Menghapus **{data_pilih['Nama Pantai']}** dari daftar favorit."
           )
@@ -656,7 +678,6 @@ else:
           " **Peta Interaktif** lalu klik tombol *Simpan ke Pantai Favorit*."
       )
     else:
-      # Ambil data pantai yang masuk dalam wishlist
       df_wishlist = df[df["Nama Pantai"].isin(st.session_state.wishlist)]
 
       for _, rw in df_wishlist.iterrows():
@@ -680,4 +701,5 @@ else:
 
       if st.button("🗑️ Kosongkan Semua Wishlist"):
         st.session_state.wishlist = []
+        update_wishlist_url()
         st.rerun()

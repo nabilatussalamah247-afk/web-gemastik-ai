@@ -35,7 +35,6 @@ st.set_page_config(
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
-# Pengelolaan query parameters untuk memastikan data wishlist aman saat halaman di-refresh (F5)
 query_params = st.query_params
 if "wishlist" in query_params:
   param_val = query_params["wishlist"]
@@ -73,7 +72,7 @@ img_splash_b64 = get_image_base64("1.png")
 img_sidebar_b64 = get_image_base64("2.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Desain Elegan, Font Poppins & Playfair, Sidebar Blur)
+# 4. PENGATURAN STYLING KUSTOM CSS (Font Playfair Display & Poppins, Background Blur)
 # =============================================================================
 st.markdown(
     f"""
@@ -85,7 +84,7 @@ st.markdown(
     .main {{ background-color: #f4f7fb; }}
     .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }}
 
-    /* ---------- Styling Sidebar dengan Background Blur 80% & Font Poppins ---------- */
+    /* ---------- Styling Sidebar dengan Background Blur & Font Poppins ---------- */
     [data-testid="stSidebar"] {{
         background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url("data:image/jpeg;base64,{img_sidebar_b64}");
         background-size: cover;
@@ -158,7 +157,7 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama dengan Background Foto 1.png & Blur ---------- */
+    /* ---------- Hero Dashboard Utama (Memaksa Font Playfair Display Estetik) ---------- */
     .hero {{
         position: relative;
         background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
@@ -172,13 +171,13 @@ st.markdown(
         overflow: hidden;
     }}
     .hero h1 {{
-        font-family: 'Playfair Display', serif;
+        font-family: 'Playfair Display', serif !important;
         margin: 0;
-        font-size: 38px;
-        font-weight: 800;
-        font-style: italic;
+        font-size: 38px !important;
+        font-weight: 800 !important;
+        font-style: italic !important;
         letter-spacing: -0.5px;
-        color: #ffffff;
+        color: #ffffff !important;
         text-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }}
     .hero p {{

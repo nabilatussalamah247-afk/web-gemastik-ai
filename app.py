@@ -157,7 +157,7 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama (Memaksa Font Playfair Display Estetik) ---------- */
+    /* ---------- Hero Dashboard Utama (Memaksa Font Playfair Display Estetik secara Mutlak) ---------- */
     .hero {{
         position: relative;
         background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
@@ -172,23 +172,24 @@ st.markdown(
     }}
     .hero h1 {{
         font-family: 'Playfair Display', serif !important;
-        margin: 0;
+        margin: 0 !important;
         font-size: 38px !important;
         font-weight: 800 !important;
         font-style: italic !important;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.5px !important;
         color: #ffffff !important;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;
     }}
     .hero p {{
-        font-family: 'Poppins', sans-serif;
-        margin: 10px 0 0 0;
-        font-size: 14.5px;
-        font-weight: 500;
-        opacity: 0.95;
-        max-width: 680px;
-        line-height: 1.5;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        font-family: 'Poppins', sans-serif !important;
+        margin: 10px 0 0 0 !important;
+        font-size: 14.5px !important;
+        font-weight: 500 !important;
+        opacity: 0.95 !important;
+        max-width: 680px !important;
+        line-height: 1.5 !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+        color: #ffffff !important;
     }}
 
     /* ---------- Metric Cards Bersih & Elegan ---------- */

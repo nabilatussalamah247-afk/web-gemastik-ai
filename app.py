@@ -1,7 +1,7 @@
 """
-BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + Analisis NLP
-=============================================================================
-Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Text Sentiment Analysis.
+BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Wishlist
+======================================================================================
+Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist.
 """
 
 import os
@@ -26,13 +26,16 @@ st.set_page_config(
 )
 
 # =============================================================================
-# INISIALISASI SESSION STATE UNTUK SPLASH SCREEN
+# INISIALISASI SESSION STATE (Wishlist & Splash Screen)
 # =============================================================================
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
+if "wishlist" not in st.session_state:
+  st.session_state.wishlist = []
+
 # =============================================================================
-# CSS KUSTOM — TAMPILAN MODERN
+# CSS KUSTOM — TAMPILAN MODERN & ELEGAN
 # =============================================================================
 st.markdown(
     """
@@ -145,8 +148,6 @@ else:
   @st.cache_data
   def load_data():
     df = pd.read_csv(DATA_PATH)
-
-    # Hapus kolom kategori kotor/kosong dari dataset
     kolom_tidak_pakai = [
         "Kategori Pantai",
         "Kategori 1",
@@ -159,7 +160,6 @@ else:
         columns=[col for col in kolom_tidak_pakai if col in df.columns],
         errors="ignore",
     )
-
     df = df.dropna(
         subset=[
             "Nama Pantai",
@@ -282,34 +282,41 @@ else:
   df = load_data()
   model_bundle = load_model_artifacts()
 
-  # Sidebar — Filter
+  # Sidebar — Filter yang Lebih Rapih Menggunakan Expander
   with st.sidebar:
     st.markdown("## 🏖️ BeachFinder")
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
     st.markdown("---")
-    st.markdown("### 🔎 Filter Data")
 
-    all_provinsi = sorted(df["Provinsi"].unique().tolist())
-    provinsi_pilihan = st.multiselect(
-        "Provinsi", options=all_provinsi, default=all_provinsi
-    )
+    with st.expander("🔎 Filter Data Peta", expanded=True):
+      all_provinsi = sorted(df["Provinsi"].unique().tolist())
+      provinsi_pilihan = st.multiselect(
+          "Provinsi", options=all_provinsi, default=all_provinsi
+      )
 
-    kualitas_options = [
-        p for p in PREDIKAT_ORDER if p.lower() in df["Predikat"].unique()
-    ]
-    kualitas_pilihan = st.multiselect(
-        "Kualitas / Predikat", options=kualitas_options, default=kualitas_options
-    )
+      kualitas_options = [
+          p for p in PREDIKAT_ORDER if p.lower() in df["Predikat"].unique()
+      ]
+      kualitas_pilihan = st.multiselect(
+          "Kualitas / Predikat",
+          options=kualitas_options,
+          default=kualitas_options,
+      )
 
-    rating_min, rating_max = float(df["Rating Angka"].min()), float(
-        df["Rating Angka"].max()
-    )
-    rating_range = st.slider(
-        "Rentang Rating",
-        min_value=rating_min,
-        max_value=rating_max,
-        value=(rating_min, rating_max),
-        step=0.1,
+      rating_min, rating_max = float(df["Rating Angka"].min()), float(
+          df["Rating Angka"].max()
+      )
+      rating_range = st.slider(
+          "Rentang Rating",
+          min_value=rating_min,
+          max_value=rating_max,
+          value=(rating_min, rating_max),
+          step=0.1,
+      )
+
+    st.markdown("---")
+    st.markdown(
+        f"❤️ **Wishlist Disimpan:** {len(st.session_state.wishlist)} Pantai"
     )
     st.markdown("---")
     st.caption("Dibangun dengan Streamlit · Folium · XGBoost")
@@ -327,7 +334,7 @@ else:
         <div class="hero">
             <h1>🏖️ BeachFinder Indonesia</h1>
             <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter,
-            analisis teks ulasan, dan prediksi kualitas berbasis lokasi menggunakan XGBoost.</p>
+            analisis teks ulasan, wishlist pribadi, dan prediksi kualitas berbasis Machine Learning.</p>
         </div>
         """,
       unsafe_allow_html=True,
@@ -349,7 +356,7 @@ else:
           int((df_filtered["Predikat"] == "bagus").sum()),
           'Predikat "Bagus"',
       ),
-      ("📍", df_filtered["Provinsi"].nunique(), "Provinsi tercakup"),
+      ("❤️", len(st.session_state.wishlist), "Pantai di Wishlist"),
   ]
   for col, (icon, value, label) in zip([col1, col2, col3, col4], metric_items):
     with col:
@@ -361,16 +368,19 @@ else:
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Tabs Utama
-  tab_peta, tab_prediksi, tab_data = st.tabs(
-      ["🗺️ Peta Interaktif", "🔮 Prediksi Kualitas Pantai", "📋 Tabel Data"]
-  )
+  # Tabs Utama (Ditambah Tab ke-4: ❤️ Pantai Favorit Saya)
+  tab_peta, tab_prediksi, tab_data, tab_wishlist = st.tabs([
+      "🗺️ Peta Interaktif",
+      "🔮 Prediksi Kualitas Pantai",
+      "📋 Tabel Data",
+      "❤️ Pantai Favorit Saya",
+  ])
 
   with tab_peta:
     st.markdown("### 🔍 Cari Destinasi Pantai")
     st.caption(
-        "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
-        " rating, predikat, dan ringkasan ulasan pengunjung."
+        "Ketik atau pilih nama pantai untuk melihat analisis lengkap, rating,"
+        " ulasan, dan simpan ke daftar favorit."
     )
 
     list_nama_pantai = sorted(df["Nama Pantai"].unique().tolist())
@@ -404,7 +414,6 @@ else:
           else "Belum ada ulasan"
       )
 
-      # Analisis NLP otomatis ulasan
       kesimpulan_nlp = analisis_ulasan_otomatis(u1, u2, u3)
 
       st.markdown(
@@ -434,22 +443,34 @@ else:
           unsafe_allow_html=True,
       )
 
+      # Tombol Wishlist Interaktif
+      is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
+      if not is_in_wishlist:
+        if st.button("❤️ Simpan ke Pantai Favorit Saya"):
+          st.session_state.wishlist.append(data_pilih["Nama Pantai"])
+          st.success(
+              f"Berhasil menambahkan **{data_pilih['Nama Pantai']}** ke"
+              " Favorit!"
+          )
+          st.rerun()
+      else:
+        if st.button("❌ Hapus dari Pantai Favorit Saya"):
+          st.session_state.wishlist.remove(data_pilih["Nama Pantai"])
+          st.warning(
+              f"Menghapus **{data_pilih['Nama Pantai']}** dari daftar favorit."
+          )
+          st.rerun()
+
     st.markdown("---")
     st.markdown("### 📍 Cari Pantai Terdekat dari Lokasi Anda")
-    st.caption(
-        "Aktifkan izin lokasi di browser Anda untuk melacak destinasi pantai"
-        " dalam radius 10 km."
-    )
+    st.caption("Aktifkan izin lokasi browser untuk melacak pantai dalam 10 km.")
 
     user_loc = streamlit_geolocation()
 
     if user_loc and user_loc.get("latitude") and user_loc.get("longitude"):
       u_lat = user_loc["latitude"]
       u_lon = user_loc["longitude"]
-      st.success(
-          f"Lokasi terdeteksi! (Latitude: {u_lat:.4f}, Longitude:"
-          f" {u_lon:.4f})"
-      )
+      st.success(f"Lokasi terdeteksi! ({u_lat:.4f}, {u_lon:.4f})")
 
       df_lokasi = df.copy()
       df_lokasi["Jarak_Km"] = df_lokasi.apply(
@@ -458,24 +479,18 @@ else:
           ),
           axis=1,
       )
-
-      radius_maks = 10.0
-      df_terdekat = df_lokasi[df_lokasi["Jarak_Km"] <= radius_maks].sort_values(
+      df_terdekat = df_lokasi[df_lokasi["Jarak_Km"] <= 10.0].sort_values(
           "Jarak_Km"
       )
 
       if len(df_terdekat) > 0:
-        st.info(
-            f"Ditemukan **{len(df_terdekat)} pantai** dalam radius {radius_maks}"
-            " km dari posisi Anda:"
-        )
+        st.info(f"Ditemukan **{len(df_terdekat)} pantai** dalam radius 10 km:")
         for _, r in df_terdekat.iterrows():
           st.markdown(
               f"""
                     <div class="search-result-box" style="padding:15px; margin-bottom:10px;">
-                        <h4 style="margin:0 0 4px 0; color:#0f172a;">🌊 {r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km dari Anda)</span></h4>
+                        <h4 style="margin:0 0 4px 0; color:#0f172a;">🌊 {r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
                         <p style="margin:2px 0; font-size:13px;">📍 Provinsi: {r['Provinsi']} | ⭐ Rating: {r['Rating Angka']} | 🏖️ Kualitas: <b>{r['Predikat'].title()}</b></p>
-                        <p style="margin:2px 0; font-size:12.5px; color:#475569;">💬 Ulasan: {r.get('Ulasan 1', 'Belum ada ulasan')}</p>
                         <p style="margin:6px 0 0 0;"><a href="{r.get('Link Google Maps', '#')}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px;">Buka di Google Maps ↗</a></p>
                     </div>
                     """,
@@ -483,14 +498,11 @@ else:
           )
       else:
         st.warning(
-            f"Tidak ada pantai yang ditemukan dalam radius {radius_maks} km"
-            " dari lokasi Anda saat ini."
+            "Tidak ada pantai yang ditemukan dalam radius 10 km dari lokasi"
+            " Anda."
         )
     else:
-      st.info(
-          "👆 Klik tombol di atas dan pilih **Allow / Izin** pada pop-up"
-          " browser untuk mendeteksi posisi Anda."
-      )
+      st.info("👆 Klik tombol di atas dan izinkan akses lokasi di browser.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 🗺️ Peta Sebaran Destinasi Pantai")
@@ -510,65 +522,33 @@ else:
 
       for _, row in df_filtered.iterrows():
         predikat_lower = row["Predikat"]
-        predikat_title = predikat_lower.title()
         color = marker_color(predikat_lower)
         stars = stars_from_rating(row["Rating Angka"])
         link = row.get("Link Google Maps", "")
 
-        u1 = (
-            row["Ulasan 1"]
-            if pd.notna(row.get("Ulasan 1"))
-            else "Belum ada ulasan"
-        )
-        u2 = (
-            row["Ulasan 2"]
-            if pd.notna(row.get("Ulasan 2"))
-            else "Belum ada ulasan"
-        )
-        u3 = (
-            row["Ulasan 3"]
-            if pd.notna(row.get("Ulasan 3"))
-            else "Belum ada ulasan"
-        )
-
         popup_html = f"""
-                <div style="font-family: 'Segoe UI', sans-serif; width: 250px; font-size: 11.5px;">
-                    <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
-                    <p style="margin: 2px 0;">📍 <b>Provinsi:</b> {row['Provinsi']}</p>
-                    <p style="margin: 2px 0;">⭐ <b>Rating:</b> {row['Rating Angka']} {stars}</p>
-                    <p style="margin: 2px 0 6px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
-                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
-                    <p style="margin: 2px 0;"><b>💬 Ulasan 1:</b> {u1}</p>
-                    <p style="margin: 2px 0;"><b>💬 Ulasan 2:</b> {u2}</p>
-                    <p style="margin: 2px 0 6px 0;"><b>💬 Ulasan 3:</b> {u3}</p>
+                <div style="font-family: 'Segoe UI', sans-serif; width: 220px; font-size: 11.5px;">
+                    <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 13px;">{row['Nama Pantai']}</h4>
+                    <p style="margin: 2px 0;">📍 {row['Provinsi']}</p>
+                    <p style="margin: 2px 0;">⭐ {row['Rating Angka']} {stars}</p>
                     {f'<a href="{link}" target="_blank">Buka di Google Maps ↗</a>' if isinstance(link, str) and link else ''}
                 </div>
                 """
 
         folium.Marker(
             location=[row["Latitude"], row["Longitude"]],
-            popup=folium.Popup(popup_html, max_width=280),
+            popup=folium.Popup(popup_html, max_width=250),
             tooltip=row["Nama Pantai"],
             icon=folium.Icon(color=color, icon="umbrella-beach", prefix="fa"),
         ).add_to(cluster)
 
       st_folium(m, use_container_width=True, height=560, returned_objects=[])
 
-      st.markdown(
-          """
-            <div style="display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;">
-                <span class="legend-dot"><span class="dot" style="background:#2563eb;"></span>Bagus</span>
-                <span class="legend-dot"><span class="dot" style="background:#dc2626;"></span>Biasa</span>
-            </div>
-            """,
-          unsafe_allow_html=True,
-      )
-
   with tab_prediksi:
     st.markdown("### 🔮 Prediksi Kualitas Pantai Baru")
     st.caption(
         "Menaksir predikat kualitas sebuah titik pantai baru berdasarkan wilayah"
-        " provinsi yang dipilih (koordinat disesuaikan otomatis)."
+        " provinsi yang dipilih."
     )
 
     if model_bundle is None:
@@ -597,17 +577,11 @@ else:
 
         with c2:
           lat_input = st.number_input(
-              "Latitude (Otomatis)",
-              value=auto_lat,
-              format="%.6f",
-              disabled=True,
+              "Latitude", value=auto_lat, format="%.6f", disabled=True
           )
         with c3:
           lon_input = st.number_input(
-              "Longitude (Otomatis)",
-              value=auto_lon,
-              format="%.6f",
-              disabled=True,
+              "Longitude", value=auto_lon, format="%.6f", disabled=True
           )
 
         submitted = st.form_submit_button(
@@ -625,12 +599,6 @@ else:
           pred_label = le_target.inverse_transform([pred_encoded])[0]
           pred_lower = str(pred_label).strip().lower()
 
-          proba = None
-          confidence = None
-          if hasattr(model, "predict_proba"):
-            proba = model.predict_proba(X_new)[0]
-            confidence = proba[pred_encoded] * 100
-
           st.markdown(
               f"""
                         <div class="result-box">
@@ -642,16 +610,13 @@ else:
                         """,
               unsafe_allow_html=True,
           )
-          if confidence is not None:
-            st.caption(f"Tingkat keyakinan model: {confidence:.1f}%")
         except Exception as e:
-          st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
+          st.error(f"Terjadi kesalahan saat memprediksi: {e}")
 
   with tab_data:
-    st.markdown("### 📋 Data Pantai (sesuai filter)")
+    st.markdown("### 📋 Tabel Data Pantai")
     tampil = df_filtered.copy()
     tampil["Predikat"] = tampil["Predikat"].str.title()
-
     kolom_tampil = [
         "Nama Pantai",
         "Provinsi",
@@ -672,8 +637,47 @@ else:
 
     csv_bytes = tampil[kolom_tampil].to_csv(index=False).encode("utf-8")
     st.download_button(
-        "⬇️ Unduh data terfilter (CSV)",
+        "⬇️ Unduh data (CSV)",
         data=csv_bytes,
         file_name="pantai_terfilter.csv",
         mime="text/csv",
     )
+
+  with tab_wishlist:
+    st.markdown("### ❤️ Daftar Pantai Favorit Saya (Wishlist)")
+    st.caption(
+        "Berikut adalah daftar pantai yang sudah Anda tandai untuk dikunjungi"
+        " nanti."
+    )
+
+    if not st.session_state.wishlist:
+      st.info(
+          "Belum ada pantai yang ditambahkan ke favorit. Cari pantai di Tab"
+          " **Peta Interaktif** lalu klik tombol *Simpan ke Pantai Favorit*."
+      )
+    else:
+      # Ambil data pantai yang masuk dalam wishlist
+      df_wishlist = df[df["Nama Pantai"].isin(st.session_state.wishlist)]
+
+      for _, rw in df_wishlist.iterrows():
+        w_stars = stars_from_rating(rw["Rating Angka"])
+        w_link = (
+            rw["Link Google Maps"]
+            if pd.notna(rw.get("Link Google Maps"))
+            else "#"
+        )
+
+        st.markdown(
+            f"""
+                <div class="search-result-box">
+                    <h3 style="margin-top:0; color:#0f172a;">🌊 {rw['Nama Pantai']}</h3>
+                    <p style="margin: 4px 0;">📍 <b>Provinsi:</b> {rw['Provinsi']} | ⭐ <b>Rating:</b> {rw['Rating Angka']} {w_stars} | 🏖️ <b>Predikat:</b> {rw['Predikat'].title()}</p>
+                    <p style="margin: 6px 0 0 0;"><a href="{w_link}" target="_blank" style="text-decoration: none; color: #0284c7; font-weight: 600;">Buka Lokasi di Google Maps ↗</a></p>
+                </div>
+                """,
+            unsafe_allow_html=True,
+        )
+
+      if st.button("🗑️ Kosongkan Semua Wishlist"):
+        st.session_state.wishlist = []
+        st.rerun()

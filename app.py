@@ -295,13 +295,14 @@ else:
     else:
       df["Jumlah Ulasan"] = 100
 
-    # --- DROP / HAPUS PANTAI TERTENTU DARI APLIKASI (Misal: Melasti Beach) ---
+    # --- DROP / HAPUS PANTAI TERTENTU DARI APLIKASI ---
     pantai_yang_dihapus = [
         "Melasti Beach",
         "Pantai Melasti",
+        "Pantai Baru Lampung",
     ]  # Sesuaikan dengan nama persis di CSV
     df = df[~df["Nama Pantai"].isin(pantai_yang_dihapus)]
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------
 
     def map_provinsi(val):
       val_str = str(val).strip()

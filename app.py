@@ -13,7 +13,6 @@ Struktur file yang dibutuhkan di folder yang sama (satu repo):
 """
 
 import os
-import altair as alt
 import folium
 from folium.plugins import MarkerCluster
 import joblib
@@ -116,21 +115,20 @@ st.markdown(
         border: 1px solid #e2e8f0;
         box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
     }
-    .caution-box {
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
-        border-left: 4px solid #ea580c;
-        border-radius: 10px;
-        padding: 12px 16px;
-        font-size: 13.5px;
-        color: #7c2d12;
-    }
     .result-box {
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
         border-radius: 14px;
         padding: 20px;
         text-align: center;
+    }
+    .search-result-box {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+        margin-bottom: 20px;
     }
 
     h1, h2, h3 { color: #0f172a; }
@@ -206,10 +204,6 @@ def marker_color(predikat_lower: str) -> str:
   return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
 
 
-def hex_color(predikat_lower: str) -> str:
-  return COLOR_MAP.get(predikat_lower, {}).get("hex", "#6b7280")
-
-
 df = load_data()
 model_bundle = load_model_artifacts()
 
@@ -267,7 +261,7 @@ st.markdown(
     """
     <div class="hero">
         <h1>🏖️ BeachFinder Indonesia</h1>
-        <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan filter,
+        <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter,
         statistik ringkas, dan prediksi kualitas berbasis lokasi menggunakan XGBoost.</p>
     </div>
     """,
@@ -275,7 +269,7 @@ st.markdown(
 )
 
 # =============================================================================
-# METRICS (Disesuaikan untuk Bagus & Biasa)
+# METRICS
 # =============================================================================
 col1, col2, col3, col4 = st.columns(4)
 metric_items = [
@@ -312,112 +306,142 @@ tab_peta, tab_prediksi, tab_data = st.tabs(
 )
 
 # -----------------------------------------------------------------------------
-# TAB 1 — PETA
+# TAB 1 — PETA & FITUR PENCARIAN PANTAI
 # -----------------------------------------------------------------------------
 with tab_peta:
+  st.markdown("### 🔍 Cari Destinasi Pantai")
+  st.caption(
+      "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
+      " rating, predikat, dan ulasan informatifnya."
+  )
+
+  # Fitur pencarian pantai berdasarkan nama
+  list_nama_pantai = sorted(df["Nama Pantai"].unique().tolist())
+  pilihan_pencarian = st.selectbox(
+      "Pilih atau ketik nama pantai:",
+      options=["-- Pilih / Cari Pantai --"] + list_nama_pantai,
+  )
+
+  # Jika pantai dipilih/dicari
+  if pilihan_pencarian != "-- Pilih / Cari Pantai --":
+    data_pilih = df[df["Nama Pantai"] == pilihan_pencarian].iloc[0]
+    p_pred = data_pilih["Predikat"].title()
+    p_stars = stars_from_rating(data_pilih["Rating Angka"])
+    p_link = (
+        data_pilih["Link Google Maps"]
+        if pd.notna(data_pilih.get("Link Google Maps"))
+        else "#"
+    )
+    u1 = (
+        data_pilih["Ulasan 1"]
+        if pd.notna(data_pilih.get("Ulasan 1"))
+        else "Belum ada ulasan"
+    )
+    u2 = (
+        data_pilih["Ulasan 2"]
+        if pd.notna(data_pilih.get("Ulasan 2"))
+        else "Belum ada ulasan"
+    )
+    u3 = (
+        data_pilih["Ulasan 3"]
+        if pd.notna(data_pilih.get("Ulasan 3"))
+        else "Belum ada ulasan"
+    )
+
+    st.markdown(
+        f"""
+        <div class="search-result-box">
+            <h3 style="margin-top:0; color:#0f172a;">🌊 {data_pilih['Nama Pantai']}</h3>
+            <hr style="margin: 8px 0 14px 0; border:0; border-top:1px solid #e2e8f0;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <p style="margin: 4px 0;">📍 <b>Provinsi:</b> {data_pilih['Provinsi']}</p>
+                    <p style="margin: 4px 0;">⭐ <b>Rating Angka:</b> {data_pilih['Rating Angka']} {p_stars}</p>
+                    <p style="margin: 4px 0;">🏖️ <b>Predikat Kualitas:</b> <span class="badge {badge_class(data_pilih['Predikat'])}">{p_pred}</span></p>
+                    <p style="margin: 4px 0;">💬 <b>Jumlah Ulasan:</b> {data_pilih.get('Jumlah Ulasan', 'N/A')}</p>
+                    <p style="margin: 8px 0 0 0;"><a href="{p_link}" target="_blank" style="text-decoration: none; color: #0284c7; font-weight: 600;">Buka Lokasi di Google Maps ↗</a></p>
+                </div>
+                <div style="flex: 1.5; min-width: 300px; background: #f8fafc; padding: 12px 16px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <p style="margin: 0 0 6px 0; font-weight: 700; color: #334155; font-size: 13px;">💬 Informasi Ulasan Pengunjung:</p>
+                    <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 1:</b> {u1}</p>
+                    <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 2:</b> {u2}</p>
+                    <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 3:</b> {u3}</p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+  st.markdown("<br>", unsafe_allow_html=True)
+  st.markdown("### 🗺️ Peta Sebaran Destinasi Pantai")
+
   if len(df_filtered) == 0:
     st.warning("Tidak ada data yang cocok dengan filter saat ini.")
   else:
-    map_col, chart_col = st.columns([2.4, 1])
+    center_lat = df_filtered["Latitude"].mean()
+    center_lon = df_filtered["Longitude"].mean()
 
-    with map_col:
-      center_lat = df_filtered["Latitude"].mean()
-      center_lon = df_filtered["Longitude"].mean()
+    m = folium.Map(
+        location=[center_lat, center_lon], zoom_start=5, tiles="CartoDB positron"
+    )
+    cluster = MarkerCluster().add_to(m)
 
-      m = folium.Map(
-          location=[center_lat, center_lon],
-          zoom_start=5,
-          tiles="CartoDB positron",
+    for _, row in df_filtered.iterrows():
+      predikat_lower = row["Predikat"]
+      predikat_title = predikat_lower.title()
+      color = marker_color(predikat_lower)
+      stars = stars_from_rating(row["Rating Angka"])
+      link = row.get("Link Google Maps", "")
+
+      u1 = (
+          row["Ulasan 1"]
+          if pd.notna(row.get("Ulasan 1"))
+          else "Belum ada ulasan"
       )
-      cluster = MarkerCluster().add_to(m)
-
-      for _, row in df_filtered.iterrows():
-        predikat_lower = row["Predikat"]
-        predikat_title = predikat_lower.title()
-        color = marker_color(predikat_lower)
-        stars = stars_from_rating(row["Rating Angka"])
-        link = row.get("Link Google Maps", "")
-
-        # Ambil ulasan 1 - 3
-        u1 = (
-            row["Ulasan 1"]
-            if pd.notna(row.get("Ulasan 1"))
-            else "Belum ada ulasan"
-        )
-        u2 = (
-            row["Ulasan 2"]
-            if pd.notna(row.get("Ulasan 2"))
-            else "Belum ada ulasan"
-        )
-        u3 = (
-            row["Ulasan 3"]
-            if pd.notna(row.get("Ulasan 3"))
-            else "Belum ada ulasan"
-        )
-
-        popup_html = f"""
-                <div style="font-family: 'Segoe UI', sans-serif; width: 250px; font-size: 11.5px;">
-                    <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
-                    <p style="margin: 2px 0;">📍 <b>Provinsi:</b> {row['Provinsi']}</p>
-                    <p style="margin: 2px 0;">⭐ <b>Rating:</b> {row['Rating Angka']} {stars}</p>
-                    <p style="margin: 2px 0 6px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
-                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
-                    <p style="margin: 2px 0;"><b>💬 Ulasan 1:</b> {u1}</p>
-                    <p style="margin: 2px 0;"><b>💬 Ulasan 2:</b> {u2}</p>
-                    <p style="margin: 2px 0 6px 0;"><b>💬 Ulasan 3:</b> {u3}</p>
-                    {f'<a href="{link}" target="_blank">Buka di Google Maps ↗</a>' if isinstance(link, str) and link else ''}
-                </div>
-                """
-
-        folium.Marker(
-            location=[row["Latitude"], row["Longitude"]],
-            popup=folium.Popup(popup_html, max_width=280),
-            tooltip=row["Nama Pantai"],
-            icon=folium.Icon(color=color, icon="umbrella-beach", prefix="fa"),
-        ).add_to(cluster)
-
-      st_folium(m, use_container_width=True, height=560, returned_objects=[])
-
-      st.markdown(
-          """
-                <div style="display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;">
-                    <span class="legend-dot"><span class="dot" style="background:#2563eb;"></span>Bagus</span>
-                    <span class="legend-dot"><span class="dot" style="background:#dc2626;"></span>Biasa</span>
-                </div>
-                """,
-          unsafe_allow_html=True,
+      u2 = (
+          row["Ulasan 2"]
+          if pd.notna(row.get("Ulasan 2"))
+          else "Belum ada ulasan"
+      )
+      u3 = (
+          row["Ulasan 3"]
+          if pd.notna(row.get("Ulasan 3"))
+          else "Belum ada ulasan"
       )
 
-    with chart_col:
-      st.markdown("##### Distribusi Kualitas")
-      dist = df_filtered["Predikat"].value_counts().reset_index()
-      dist.columns = ["Predikat", "Jumlah"]
-      dist["Predikat"] = dist["Predikat"].str.title()
-      dist["warna"] = dist["Predikat"].str.lower().map(hex_color)
+      popup_html = f"""
+            <div style="font-family: 'Segoe UI', sans-serif; width: 250px; font-size: 11.5px;">
+                <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
+                <p style="margin: 2px 0;">📍 <b>Provinsi:</b> {row['Provinsi']}</p>
+                <p style="margin: 2px 0;">⭐ <b>Rating:</b> {row['Rating Angka']} {stars}</p>
+                <p style="margin: 2px 0 6px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                <p style="margin: 2px 0;"><b>💬 Ulasan 1:</b> {u1}</p>
+                <p style="margin: 2px 0;"><b>💬 Ulasan 2:</b> {u2}</p>
+                <p style="margin: 2px 0 6px 0;"><b>💬 Ulasan 3:</b> {u3}</p>
+                {f'<a href="{link}" target="_blank">Buka di Google Maps ↗</a>' if isinstance(link, str) and link else ''}
+            </div>
+            """
 
-      chart = (
-          alt.Chart(dist)
-          .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
-          .encode(
-              x=alt.X("Predikat:N", sort="-y", title=None),
-              y=alt.Y("Jumlah:Q", title=None),
-              color=alt.Color("warna:N", scale=None, legend=None),
-              tooltip=["Predikat", "Jumlah"],
-          )
-          .properties(height=220)
-      )
-      st.altair_chart(chart, use_container_width=True)
+      folium.Marker(
+          location=[row["Latitude"], row["Longitude"]],
+          popup=folium.Popup(popup_html, max_width=280),
+          tooltip=row["Nama Pantai"],
+          icon=folium.Icon(color=color, icon="umbrella-beach", prefix="fa"),
+      ).add_to(cluster)
 
-      st.markdown("##### 🏆 Top 5 Pantai")
-      top5 = df_filtered.sort_values("Rating Angka", ascending=False).head(5)
-      for _, r in top5.iterrows():
-        st.markdown(
-            f"""<div class="info-card" style="margin-bottom:8px; padding:10px 14px;">
-                    <b>{r['Nama Pantai']}</b><br>
-                    <span style="font-size:12.5px; color:#64748b;">{r['Provinsi']} · {r['Rating Angka']} ⭐</span>
-                    </div>""",
-            unsafe_allow_html=True,
-        )
+    st_folium(m, use_container_width=True, height=560, returned_objects=[])
+
+    st.markdown(
+        """
+        <div style="display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;">
+            <span class="legend-dot"><span class="dot" style="background:#2563eb;"></span>Bagus</span>
+            <span class="legend-dot"><span class="dot" style="background:#dc2626;"></span>Biasa</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # -----------------------------------------------------------------------------
 # TAB 2 — PREDIKSI

@@ -3,8 +3,6 @@ BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + 
 ==================================================================================================================
 Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
 Versi Long-Form, Sangat Kompleks, Komprehensif, dan Diperkaya Penuh untuk Penilaian Kompetisi Data Mining / Gemastik.
-Modul ini mengintegrasikan pemrosesan data geospasial, analisis ulasan berbasis Natural Language Processing (NLP),
-serta model Machine Learning Extreme Gradient Boosting (XGBoost) untuk klasifikasi destinasi wisata bahari.
 """
 
 import base64
@@ -75,7 +73,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Background Putih Solid & Siluet Ombak Rapi)
+# 4. PENGATURAN STYLING KUSTOM CSS
 # =============================================================================
 st.markdown(
     f"""
@@ -99,7 +97,6 @@ st.markdown(
         font-weight: 600 !important;
     }}
     
-    /* Perbaikan Kotak Putih Anomali pada Expander Sidebar */
     [data-testid="stSidebar"] [data-testid="stExpander"] {{
         background-color: rgba(255, 255, 255, 0.08) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -110,7 +107,6 @@ st.markdown(
         font-weight: 700 !important;
     }}
 
-    /* Judul Estetik di Sidebar */
     .sidebar-title {{
         font-family: 'Playfair Display', serif;
         font-size: 32px;
@@ -121,7 +117,6 @@ st.markdown(
         letter-spacing: -0.5px;
     }}
 
-    /* ---------- Splash Screen Background Full Image & Typography ---------- */
     .splash-hero {{
         position: relative;
         width: 100%;
@@ -160,7 +155,6 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama (Background Foto 1.png & Blur) ---------- */
     .hero {{
         position: relative;
         background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
@@ -185,7 +179,6 @@ st.markdown(
         color: #ffffff !important;
     }}
 
-    /* ---------- Metric Cards dengan Background Putih Solid & Siluet Ombak Rapi ---------- */
     .metric-card {{
         position: relative;
         background-color: #ffffff !important;
@@ -209,7 +202,6 @@ st.markdown(
     .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; position: relative; z-index: 2; }}
     .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; position: relative; z-index: 2; }}
 
-    /* ---------- Badges & Kotak Konten ---------- */
     .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}
     .badge-blue {{ background-color: #2563eb; }}
     .badge-red {{ background-color: #dc2626; }}
@@ -266,7 +258,6 @@ else:
 
   @st.cache_data
   def load_data():
-    """Fungsi canggih untuk memuat dan membersihkan dataset CSV dari lokal."""
     df = pd.read_csv(DATA_PATH)
     kolom_tidak_pakai = [
         "Kategori Pantai",
@@ -306,7 +297,6 @@ else:
 
   @st.cache_resource
   def load_model_artifacts():
-    """Memuat model XGBoost dan encoder yang telah dilatih sebelumnya."""
     if not (
         os.path.exists(MODEL_PATH)
         and os.path.exists(LE_TARGET_PATH)
@@ -320,24 +310,20 @@ else:
 
 
   def stars_from_rating(rating: float) -> str:
-    """Mengubah rating angka menjadi simbol bintang."""
     penuh = int(round(rating))
     penuh = max(0, min(5, penuh))
     return "★" * penuh
 
 
   def badge_class(predikat_lower: str) -> str:
-    """Mengembalikan kelas badge CSS."""
     return COLOR_MAP.get(predikat_lower, {}).get("badge", "badge-gray")
 
 
   def marker_color(predikat_lower: str) -> str:
-    """Mengembalikan warna marker Folium."""
     return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
 
 
   def hitung_jarak_km(lat1, lon1, lat2, lon2):
-    """Menghitung jarak spasial dengan rumus Haversine."""
     R = 6371.0
     lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
@@ -351,7 +337,6 @@ else:
 
 
   def analisis_ulasan_otomatis(u1, u2, u3):
-    """Analisis sentimen ulasan berbasis NLP sederhana."""
     teks_gabungan = f"{str(u1)} {str(u2)} {str(u3)}".lower()
     if (
         teks_gabungan == "nan nan nan"
@@ -480,7 +465,7 @@ else:
   ].copy()
 
   # =============================================================================
-  # 8. HERO SECTION UTAMA (Memaksa Inline Font Playfair Display Estetik secara Mutlak)
+  # 8. HERO SECTION UTAMA
   # =============================================================================
   st.markdown(
       """
@@ -611,14 +596,36 @@ else:
 
     st.markdown("---")
     st.markdown("### Cari Pantai Terdekat dari Lokasi Anda")
-    st.caption("Aktifkan izin lokasi browser untuk melacak pantai dalam 10 km.")
+    st.caption(
+        "Gunakan tombol di bawah untuk mendeteksi lokasi atau pilih koordinat"
+        " otomatis."
+    )
 
-    user_loc = streamlit_geolocation()
+    # Perbaikan: Mengganti komponen geolocation dengan tombol interaktif yang dijamin tampil
+    col_geo1, col_geo2 = st.columns([1, 2])
+    with col_geo1:
+      deteksi_lokasi = st.button(
+          "📍 Deteksi Lokasi Saya", use_container_width=True
+      )
 
-    if user_loc and user_loc.get("latitude") and user_loc.get("longitude"):
-      u_lat = user_loc["latitude"]
-      u_lon = user_loc["longitude"]
-      st.success(f"Lokasi terdeteksi! ({u_lat:.4f}, {u_lon:.4f})")
+    # Inisialisasi koordinat default (Bandar Lampung / Pusat)
+    u_lat, u_lon = None, None
+
+    if deteksi_lokasi:
+      user_loc = streamlit_geolocation()
+      if user_loc and user_loc.get("latitude") and user_loc.get("longitude"):
+        u_lat = user_loc["latitude"]
+        u_lon = user_loc["longitude"]
+      else:
+        # Fallback jika browser block geolocation cloud deployment
+        u_lat, u_lon = -5.4297, 105.2615
+        st.info(
+            "Menggunakan lokasi estimasi default (Bandar Lampung) karena"
+            " pembatasan browser cloud."
+        )
+
+    if u_lat and u_lon:
+      st.success(f"Lokasi aktif: ({u_lat:.4f}, {u_lon:.4f})")
 
       df_lokasi = df.copy()
       df_lokasi["Jarak_Km"] = df_lokasi.apply(
@@ -627,12 +634,12 @@ else:
           ),
           axis=1,
       )
-      df_terdekat = df_lokasi[df_lokasi["Jarak_Km"] <= 10.0].sort_values(
+      df_terdekat = df_lokasi[df_lokasi["Jarak_Km"] <= 15.0].sort_values(
           "Jarak_Km"
       )
 
       if len(df_terdekat) > 0:
-        st.info(f"Ditemukan **{len(df_terdekat)} pantai** dalam radius 10 km:")
+        st.info(f"Ditemukan **{len(df_terdekat)} pantai** terdekat:")
         for _, r in df_terdekat.iterrows():
           rute_url = f"https://www.google.com/maps/dir/?api=1&origin={u_lat},{u_lon}&destination={r['Latitude']},{r['Longitude']}"
           maps_url = (
@@ -668,12 +675,12 @@ else:
                 unsafe_allow_html=True,
             )
       else:
-        st.warning(
-            "Tidak ada pantai yang ditemukan dalam radius 10 km dari lokasi"
-            " Anda."
-        )
+        st.warning("Tidak ada pantai yang ditemukan dalam radius terdekat.")
     else:
-      st.info("Klik tombol di atas dan izinkan akses lokasi di browser.")
+      st.info(
+          "Silakan klik tombol **📍 Deteksi Lokasi Saya** di atas untuk"
+          " menampilkan daftar pantai terdekat."
+      )
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### Peta Sebaran Destinasi Pantai")

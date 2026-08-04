@@ -174,7 +174,6 @@ def load_data():
   )
   df["Predikat"] = df["Predikat"].str.strip().str.lower()
 
-  # Normalisasi wilayah/pulau agar pas menjadi 38 provinsi administratif resmi
   def map_provinsi(val):
     val_str = str(val).strip()
     if val_str in ["Ambon", "Pulau Buru", "Pulau Seram", "Pulau Wetar"]:
@@ -453,13 +452,13 @@ with tab_peta:
     )
 
 # -----------------------------------------------------------------------------
-# TAB 2 — PREDIKSI
+# TAB 2 — PREDIKSI (Latitude & Longitude Otomatis Berdasarkan Provinsi)
 # -----------------------------------------------------------------------------
 with tab_prediksi:
   st.markdown("### 🔮 Prediksi Kualitas Pantai Baru")
   st.caption(
-      "Menaksir predikat kualitas sebuah titik pantai yang **belum punya rating**"
-      " — hanya berdasarkan lokasinya (provinsi, latitude, longitude)."
+      "Menaksir predikat kualitas sebuah titik pantai baru berdasarkan wilayah"
+      " provinsi yang dipilih (koordinat disesuaikan otomatis)."
   )
 
   if model_bundle is None:
@@ -473,17 +472,40 @@ with tab_prediksi:
 
     with st.form("form_prediksi"):
       c1, c2, c3 = st.columns(3)
+
       with c1:
         provinsi_input = st.selectbox(
             "Provinsi", options=sorted(le_provinsi.classes_.tolist())
         )
+
+      # Hitung otomatis rata-rata Latitude & Longitude dari provinsi yang dipilih
+      df_prov = df[df["Provinsi"] == provinsi_input]
+      auto_lat = (
+          float(df_prov["Latitude"].mean())
+          if len(df_prov) > 0
+          else float(df["Latitude"].mean())
+      )
+      auto_lon = (
+          float(df_prov["Longitude"].mean())
+          if len(df_prov) > 0
+          else float(df["Longitude"].mean())
+      )
+
       with c2:
+        # Non-editable (disabled)
         lat_input = st.number_input(
-            "Latitude", value=float(df["Latitude"].mean()), format="%.6f"
+            "Latitude (Otomatis)",
+            value=auto_lat,
+            format="%.6f",
+            disabled=True,
         )
       with c3:
+        # Non-editable (disabled)
         lon_input = st.number_input(
-            "Longitude", value=float(df["Longitude"].mean()), format="%.6f"
+            "Longitude (Otomatis)",
+            value=auto_lon,
+            format="%.6f",
+            disabled=True,
         )
 
       submitted = st.form_submit_button(
@@ -494,7 +516,7 @@ with tab_prediksi:
       try:
         provinsi_encoded = le_provinsi.transform([provinsi_input])[0]
         X_new = pd.DataFrame(
-            [[lat_input, lon_input, provinsi_encoded]],
+            [[auto_lat, auto_lon, provinsi_encoded]],
             columns=["Latitude", "Longitude", "Provinsi"],
         )
         pred_encoded = model.predict(X_new)[0]

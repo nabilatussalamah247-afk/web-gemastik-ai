@@ -394,10 +394,11 @@ else:
   ])
 
   with tab_peta:
+    # 1. PENCARIAN UTAMA PANTAI (Lengkap dengan Predikat & Ulasan)
     st.markdown("### 🔍 Cari Destinasi Pantai")
     st.caption(
-        "Ketik atau pilih nama pantai untuk melihat analisis lengkap, rating,"
-        " ulasan, dan simpan ke daftar favorit."
+        "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
+        " rating, predikat, dan ringkasan ulasan pengunjung."
     )
 
     list_nama_pantai = sorted(df["Nama Pantai"].unique().tolist())
@@ -479,6 +480,7 @@ else:
           )
           st.rerun()
 
+    # 2. FITUR CARI PANTAI TERDEKAT (GEOLOKASI)
     st.markdown("---")
     st.markdown("### 📍 Cari Pantai Terdekat dari Lokasi Anda")
     st.caption("Aktifkan izin lokasi browser untuk melacak pantai dalam 10 km.")
@@ -522,6 +524,7 @@ else:
     else:
       st.info("👆 Klik tombol di atas dan izinkan akses lokasi di browser.")
 
+    # 3. PETA SEBARAN DESTINASI PANTAI (Lengkap dengan Pop-up Detail)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 🗺️ Peta Sebaran Destinasi Pantai")
 
@@ -540,22 +543,44 @@ else:
 
       for _, row in df_filtered.iterrows():
         predikat_lower = row["Predikat"]
+        predikat_title = predikat_lower.title()
         color = marker_color(predikat_lower)
         stars = stars_from_rating(row["Rating Angka"])
         link = row.get("Link Google Maps", "")
 
+        u1 = (
+            row["Ulasan 1"]
+            if pd.notna(row.get("Ulasan 1"))
+            else "Belum ada ulasan"
+        )
+        u2 = (
+            row["Ulasan 2"]
+            if pd.notna(row.get("Ulasan 2"))
+            else "Belum ada ulasan"
+        )
+        u3 = (
+            row["Ulasan 3"]
+            if pd.notna(row.get("Ulasan 3"))
+            else "Belum ada ulasan"
+        )
+
         popup_html = f"""
-                <div style="font-family: 'Segoe UI', sans-serif; width: 220px; font-size: 11.5px;">
-                    <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 13px;">{row['Nama Pantai']}</h4>
-                    <p style="margin: 2px 0;">📍 {row['Provinsi']}</p>
-                    <p style="margin: 2px 0;">⭐ {row['Rating Angka']} {stars}</p>
+                <div style="font-family: 'Segoe UI', sans-serif; width: 240px; font-size: 11.5px;">
+                    <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
+                    <p style="margin: 2px 0;">📍 <b>Provinsi:</b> {row['Provinsi']}</p>
+                    <p style="margin: 2px 0;">⭐ <b>Rating:</b> {row['Rating Angka']} {stars}</p>
+                    <p style="margin: 2px 0 6px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
+                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                    <p style="margin: 2px 0;"><b>💬 Ulasan 1:</b> {u1}</p>
+                    <p style="margin: 2px 0;"><b>💬 Ulasan 2:</b> {u2}</p>
+                    <p style="margin: 2px 0 6px 0;"><b>💬 Ulasan 3:</b> {u3}</p>
                     {f'<a href="{link}" target="_blank">Buka di Google Maps ↗</a>' if isinstance(link, str) and link else ''}
                 </div>
                 """
 
         folium.Marker(
             location=[row["Latitude"], row["Longitude"]],
-            popup=folium.Popup(popup_html, max_width=250),
+            popup=folium.Popup(popup_html, max_width=270),
             tooltip=row["Nama Pantai"],
             icon=folium.Icon(color=color, icon="umbrella-beach", prefix="fa"),
         ).add_to(cluster)

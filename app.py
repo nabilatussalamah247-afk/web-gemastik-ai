@@ -3,6 +3,8 @@ BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + 
 ==================================================================================================================
 Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
 Versi Long-Form, Sangat Kompleks, Komprehensif, dan Diperkaya Penuh untuk Penilaian Kompetisi Data Mining / Gemastik.
+Modul ini mengintegrasikan pemrosesan data geospasial, analisis ulasan berbasis Natural Language Processing (NLP),
+serta model Machine Learning Extreme Gradient Boosting (XGBoost) untuk klasifikasi destinasi wisata bahari.
 """
 
 import base64
@@ -70,9 +72,10 @@ def get_image_base64(path):
 
 img_splash_b64 = get_image_base64("1.png")
 img_sidebar_b64 = get_image_base64("2.jpg")
+img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Font Playfair Display & Poppins, Background Blur)
+# 4. PENGATURAN STYLING KUSTOM CSS (Font, Background Blur, Animasi Siluet Ombak Kartu)
 # =============================================================================
 st.markdown(
     f"""
@@ -157,7 +160,7 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama ---------- */
+    /* ---------- Hero Dashboard Utama (Background Foto 1.png & Blur) ---------- */
     .hero {{
         position: relative;
         background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
@@ -182,11 +185,22 @@ st.markdown(
         color: #ffffff !important;
     }}
 
-    /* ---------- Metric Cards Bersih & Elegan ---------- */
+    /* ---------- Metric Cards dengan Siluet Ombak (3.jpg) & Animasi Hover ---------- */
     .metric-card {{
-        background: white; border-radius: 16px; padding: 20px;
-        border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        position: relative;
+        background: #ffffff url("data:image/jpeg;base64,{img_wave_b64}") no-repeat bottom right;
+        background-size: 110px auto;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
         text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }}
+    .metric-card:hover {{
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(14, 116, 144, 0.15);
+        border-color: #0284c7;
     }}
     .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; }}
     .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; }}
@@ -623,7 +637,6 @@ else:
               else "#"
           )
 
-          # Layout 2 Kolom per Kartu: Kiri untuk Teks/Tombol, Kanan untuk Ilustrasi/Foto Pantai
           col_card_info, col_card_img = st.columns([3, 1])
 
           with col_card_info:
@@ -642,7 +655,6 @@ else:
             )
 
           with col_card_img:
-            # Menampilkan kotak ilustrasi foto pantai yang estetik di sebelah kanan
             st.markdown(
                 f"""
                         <div style="background-image: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.5)), url('data:image/png;base64,{img_splash_b64}'); background-size: cover; background-position: center; border-radius: 12px; height: 112px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); border: 1px solid #cbd5e1; margin-bottom: 10px;">

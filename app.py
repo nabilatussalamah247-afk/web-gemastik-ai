@@ -39,7 +39,6 @@ query_params = st.query_params
 if "wishlist" in query_params:
   val_param = query_params["wishlist"]
   if isinstance(val_param, list):
-    # Gabungkan jika ada list parameter kembar
     combined = ",".join(val_param)
     st.session_state.wishlist = [
         item.strip() for item in combined.split(",") if item.strip()
@@ -581,9 +580,7 @@ else:
           unsafe_allow_html=True,
       )
 
-      is_in_wishlist = data_piliations = (
-          data_pilih["Nama Pantai"] in st.session_state.wishlist
-      )
+      is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
       if not is_in_wishlist:
         if st.button("Simpan ke Pantai Favorit Saya"):
           st.session_state.wishlist.append(data_pilih["Nama Pantai"])
@@ -796,10 +793,34 @@ else:
       if submitted:
         try:
           provinsi_encoded = le_provinsi.transform([provinsi_input])[0]
+
+          # Cek nama fitur asli yang diminta oleh model XGBoost secara otomatis
+          expected_features = (
+              model.get_booster().feature_names
+              if hasattr(model, "get_booster")
+              and model.get_booster().feature_names
+              else ["Latitude", "Longitude", "Provinsi_Encoded"]
+          )
+
+          # Buat DataFrame dengan menyesuaikan nama kolom yang diminta model
+          col_prov_name = (
+              expected_features[2]
+              if len(expected_features) > 2
+              else "Provinsi_Encoded"
+          )
           X_new = pd.DataFrame(
               [[auto_lat, auto_lon, provinsi_encoded]],
-              columns=["Latitude", "Longitude", "Provinsi"],
+              columns=[
+                  expected_features[0]
+                  if len(expected_features) > 0
+                  else "Latitude",
+                  expected_features[1]
+                  if len(expected_features) > 1
+                  else "Longitude",
+                  col_prov_name,
+              ],
           )
+
           pred_encoded = model.predict(X_new)[0]
           pred_label = le_target.inverse_transform([pred_encoded])[0]
           pred_lower = str(pred_label).strip().lower()

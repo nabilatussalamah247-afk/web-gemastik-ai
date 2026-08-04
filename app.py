@@ -89,9 +89,7 @@ st.markdown(
         color: white;
         letter-spacing: 0.2px;
     }
-    .badge-green  { background-color: #16a34a; }
     .badge-blue   { background-color: #2563eb; }
-    .badge-orange { background-color: #ea580c; }
     .badge-red    { background-color: #dc2626; }
     .badge-gray   { background-color: #6b7280; }
 
@@ -144,21 +142,20 @@ st.markdown(
 )
 
 # =============================================================================
-# KONSTAN
+# KONSTAN (Hanya Bagus & Biasa)
 # =============================================================================
 COLOR_MAP = {
-    "sangat bagus": {"marker": "green", "badge": "badge-green", "hex": "#16a34a"},
     "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
     "biasa": {"marker": "red", "badge": "badge-red", "hex": "#dc2626"},
 }
-PREDIKAT_ORDER = ["Sangat Bagus", "Bagus", "Biasa"]
+PREDIKAT_ORDER = ["Bagus", "Biasa"]
 
 DATA_PATH = "dataset_clean.csv"
 MODEL_PATH = "model_xgboost_wisata.pkl"
 LE_TARGET_PATH = "label_encoder_target.pkl"
 LE_PROVINSI_PATH = "le_provinsi.pkl"
 
-KELAS_MINORITAS = {"bagus", "biasa"}
+KELAS_MINORITAS = {"biasa"}
 
 
 # =============================================================================
@@ -178,7 +175,6 @@ def load_data():
       ]
   )
   df["Predikat"] = df["Predikat"].str.strip().str.lower()
-  df["Predikat"] = df["Predikat"].replace({"cukup bagus": "biasa"})
   return df
 
 
@@ -279,7 +275,7 @@ st.markdown(
 )
 
 # =============================================================================
-# METRICS
+# METRICS (Disesuaikan untuk Bagus & Biasa)
 # =============================================================================
 col1, col2, col3, col4 = st.columns(4)
 metric_items = [
@@ -293,8 +289,8 @@ metric_items = [
     ),
     (
         "🌟",
-        int((df_filtered["Predikat"] == "sangat bagus").sum()),
-        'Predikat "Sangat Bagus"',
+        int((df_filtered["Predikat"] == "bagus").sum()),
+        'Predikat "Bagus"',
     ),
     ("📍", df_filtered["Provinsi"].nunique(), "Provinsi tercakup"),
 ]
@@ -385,7 +381,6 @@ with tab_peta:
       st.markdown(
           """
                 <div style="display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;">
-                    <span class="legend-dot"><span class="dot" style="background:#16a34a;"></span>Sangat Bagus</span>
                     <span class="legend-dot"><span class="dot" style="background:#2563eb;"></span>Bagus</span>
                     <span class="legend-dot"><span class="dot" style="background:#dc2626;"></span>Biasa</span>
                 </div>
@@ -432,20 +427,6 @@ with tab_prediksi:
   st.caption(
       "Menaksir predikat kualitas sebuah titik pantai yang **belum punya rating**"
       " — hanya berdasarkan lokasinya (provinsi, latitude, longitude)."
-  )
-
-  st.markdown(
-      """
-        <div class="caution-box">
-        ⚠️ <b>Perlu diketahui:</b> dataset training sangat timpang — sekitar 90%"
-        " pantai berpredikat "Sangat Bagus". Akibatnya model jauh lebih akurat"
-        " menebak kelas "Sangat Bagus" dibanding kelas lain ("Bagus", "Biasa")."
-        " Anggap hasil prediksi ini sebagai <i>indikasi awal</i>, bukan"
-        " penilaian pasti.
-        </div>
-        <br>
-        """,
-      unsafe_allow_html=True,
   )
 
   if model_bundle is None:
@@ -506,13 +487,6 @@ with tab_prediksi:
         )
         if confidence is not None:
           st.caption(f"Tingkat keyakinan model: {confidence:.1f}%")
-
-        if pred_lower in KELAS_MINORITAS:
-          st.info(
-              "ℹ️ Kelas ini termasuk minoritas di data training — anggap hasil"
-              " ini sebagai sinyal kasar, dan tetap cek langsung kondisi"
-              " lapangan sebelum mengambil keputusan."
-          )
 
       except Exception as e:
         st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")

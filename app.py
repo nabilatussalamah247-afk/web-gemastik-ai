@@ -145,6 +145,21 @@ else:
   @st.cache_data
   def load_data():
     df = pd.read_csv(DATA_PATH)
+
+    # Menghapus kolom kategori kotor/kosong dari dataset
+    kolom_tidak_pakai = [
+        "Kategori Pantai",
+        "Kategori 1",
+        "Kategori 2",
+        "Kategori 3",
+        "Kategori 4",
+        "Kategori 5",
+    ]
+    df = df.drop(
+        columns=[col for col in kolom_tidak_pakai if col in df.columns],
+        errors="ignore",
+    )
+
     df = df.dropna(
         subset=[
             "Nama Pantai",

@@ -1,7 +1,7 @@
 """
-BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Wishlist + Navigasi + Explainable AI
-==================================================================================================================
-Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
+BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + Top 5 Grafik Ulasan + NLP + Wishlist + Navigasi
+=========================================================================================================================
+Dibangun dengan Streamlit + Folium + XGBoost + Altair Charts + Geolocation + Sentiment + Wishlist + Navigation.
 Versi Long-Form, Sangat Kompleks, Komprehensif, dan Diperkaya Penuh untuk Penilaian Kompetisi Data Mining / Gemastik.
 """
 
@@ -288,6 +288,13 @@ else:
     )
     df["Predikat"] = df["Predikat"].str.strip().str.lower()
 
+    if "Jumlah Ulasan" in df.columns:
+      df["Jumlah Ulasan"] = (
+          pd.to_numeric(df["Jumlah Ulasan"], errors="coerce").fillna(0).astype(int)
+      )
+    else:
+      df["Jumlah Ulasan"] = 100  # Fallback dummy jika belum ada kolom
+
     def map_provinsi(val):
       val_str = str(val).strip()
       if val_str in ["Ambon", "Pulau Buru", "Pulau Seram", "Pulau Wetar"]:
@@ -504,11 +511,12 @@ else:
   st.markdown("<br>", unsafe_allow_html=True)
 
   # =============================================================================
-  # 9. TABS UTAMA APLIKASI
+  # 9. TABS UTAMA APLIKASI (Termasuk Tab Baru: Top 5 Grafik Ulasan Terbanyak)
   # =============================================================================
-  tab_peta, tab_prediksi, tab_data, tab_model = st.tabs([
+  tab_peta, tab_prediksi, tab_top5, tab_data, tab_model = st.tabs([
       "Peta & Eksplorasi",
       "Prediksi Kualitas Pantai",
+      "Top 5 Grafik Ulasan",
       "Tabel Data & Unduh",
       "Tentang Model ML",
   ])
@@ -793,16 +801,12 @@ else:
       if submitted:
         try:
           provinsi_encoded = le_provinsi.transform([provinsi_input])[0]
-
-          # Cek nama fitur asli yang diminta oleh model XGBoost secara otomatis
           expected_features = (
               model.get_booster().feature_names
               if hasattr(model, "get_booster")
               and model.get_booster().feature_names
               else ["Latitude", "Longitude", "Provinsi_Encoded"]
           )
-
-          # Buat DataFrame dengan menyesuaikan nama kolom yang diminta model
           col_prov_name = (
               expected_features[2]
               if len(expected_features) > 2
@@ -838,6 +842,84 @@ else:
           )
         except Exception as e:
           st.error(f"Terjadi kesalahan saat memprediksi: {e}")
+
+  with tab_top5:
+    st.markdown("### Top 5 Pantai Berdasarkan Jumlah Ulasan Terbanyak")
+    st.caption(
+        "Pilih provinsi di bawah ini untuk melihat 5 destinasi pantai paling"
+        " populer (banyak diulas pengunjung)."
+    )
+
+    all_prov_list = sorted(df["Provinsi"].unique().tolist())
+    selected_prov_top5 = st.selectbox(
+        "Pilih Provinsi:",
+        options=["-- Pilih Provinsi --"] + all_prov_list,
+        key="select_prov_top5",
+    )
+
+    if selected_prov_top5 != "-- Pilih Provinsi --":
+      df_p_prov = df[df["Provinsi"] == selected_prov_top5].copy()
+      df_top5 = (
+          df_p_prov.sort_values(by="Jumlah Ulasan", ascending=False)
+          .head(5)
+          .reset_index(drop=True)
+      )
+
+      if len(df_top5) > 0:
+        st.markdown(
+            f"#### 🏆 Top 5 Destinasi Populer di Provinsi {selected_prov_top5}"
+        )
+
+        # Membuat Grafik Batang Interaktif dengan Altair (Nuansa Biru Estetik)
+        chart = (
+            alt.Chart(df_top5)
+            .mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6)
+            .encode(
+                x=alt.X("Jumlah Ulasan:Q", title="Jumlah Ulasan Pengunjung"),
+                y=alt.Y(
+                    "Nama Pantai:N",
+                    sort="-x",
+                    title="Nama Pantai",
+                    axis=alt.Axis(labelLimit=300),
+                ),
+                color=alt.Color(
+                    "Jumlah Ulasan:Q",
+                    scale=alt.Scale(scheme="blues"),
+                    legend=None,
+                ),
+                tooltip=["Nama Pantai", "Provinsi", "Rating Angka", "Jumlah Ulasan"],
+            )
+            .properties(height=320, width="container")
+            .configure_view(stroke=None)
+            .configure_axis(grid=True, gridColor="#e2e8f0")
+        )
+
+        st.altair_chart(chart, use_container_width=True)
+
+        # Menampilkan detail kartu kecil di bawah grafik
+        st.markdown("---")
+        c_sub1, c_sub2 = st.columns(2)
+        for idx, row_t5 in df_top5.iterrows():
+          col_target = c_sub1 if idx % 2 == 0 else c_sub2
+          with col_target:
+            st.markdown(
+                f"""
+                        <div style="background: white; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                            <p style="margin:0 0 4px 0; font-weight:700; color:#0f172a; font-size:14px;">#{idx+1} {row_t5['Nama Pantai']}</p>
+                            <p style="margin:0; font-size:12.5px; color:#475569;">⭐ Rating: <b>{row_t5['Rating Angka']}</b> | 💬 Ulasan: <b>{row_t5['Jumlah Ulasan']}</b> | Kualitas: <b>{row_t5['Predikat'].title()}</b></p>
+                        </div>
+                        """,
+                unsafe_allow_html=True,
+            )
+      else:
+        st.warning(
+            f"Belum ada data ulasan untuk provinsi {selected_prov_top5}."
+        )
+    else:
+      st.info(
+          "👆 Silakan pilih salah satu provinsi di atas untuk menampilkan"
+          " grafik Top 5 pantai."
+      )
 
   with tab_data:
     st.markdown("### Tabel Data Pantai")

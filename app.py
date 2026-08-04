@@ -293,7 +293,15 @@ else:
           pd.to_numeric(df["Jumlah Ulasan"], errors="coerce").fillna(0).astype(int)
       )
     else:
-      df["Jumlah Ulasan"] = 100  # Fallback dummy jika belum ada kolom
+      df["Jumlah Ulasan"] = 100
+
+    # --- DROP / HAPUS PANTAI TERTENTU DARI APLIKASI (Misal: Melasti Beach) ---
+    pantai_yang_dihapus = [
+        "Melasti Beach",
+        "Pantai Melasti",
+    ]  # Sesuaikan dengan nama persis di CSV
+    df = df[~df["Nama Pantai"].isin(pantai_yang_dihapus)]
+    # ------------------------------------------------------------------------
 
     def map_provinsi(val):
       val_str = str(val).strip()
@@ -511,7 +519,7 @@ else:
   st.markdown("<br>", unsafe_allow_html=True)
 
   # =============================================================================
-  # 9. TABS UTAMA APLIKASI (Termasuk Tab Baru: Top 5 Grafik Ulasan Terbanyak)
+  # 9. TABS UTAMA APLIKASI
   # =============================================================================
   tab_peta, tab_prediksi, tab_top5, tab_data, tab_model = st.tabs([
       "Peta & Eksplorasi",
@@ -870,7 +878,6 @@ else:
             f"#### 🏆 Top 5 Destinasi Populer di Provinsi {selected_prov_top5}"
         )
 
-        # Membuat Grafik Batang Interaktif dengan Altair (Nuansa Biru Estetik)
         chart = (
             alt.Chart(df_top5)
             .mark_bar(cornerRadiusTopRight=6, cornerRadiusBottomRight=6)
@@ -896,7 +903,6 @@ else:
 
         st.altair_chart(chart, use_container_width=True)
 
-        # Menampilkan detail kartu kecil di bawah grafik
         st.markdown("---")
         c_sub1, c_sub2 = st.columns(2)
         for idx, row_t5 in df_top5.iterrows():

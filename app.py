@@ -1,7 +1,7 @@
 """
 BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas Pantai
 =============================================================================
-Dibangun dengan Streamlit + Folium + XGBoost.
+Dibangun dengan Streamlit + Folium + XGBoost + Geolocation.
 """
 
 import os
@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
+from streamlit_geolocation import streamlit_geolocation
 
 # =============================================================================
 # KONFIGURASI HALAMAN
@@ -31,7 +32,7 @@ if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
 # =============================================================================
-# CSS KUSTOM — TAMPILAN MODERN (Termasuk Splash Screen)
+# CSS KUSTOM — TAMPILAN MODERN
 # =============================================================================
 st.markdown(
     """
@@ -98,12 +99,9 @@ st.markdown(
 )
 
 # =============================================================================
-# KONTROL TAMPILAN: KONDISI SPLASH SCREEN ATAU DASHBOARD UTAMA
+# KONTROL TAMPILAN: SPLASH SCREEN / DASHBOARD UTAMA
 # =============================================================================
 if st.session_state.show_splash:
-  # -----------------------------------------------------------------------------
-  # TAMPILAN SPLASH SCREEN
-  # -----------------------------------------------------------------------------
   st.markdown(
       """
         <div class="splash-container">
@@ -129,9 +127,9 @@ if st.session_state.show_splash:
       st.rerun()
 
 else:
-  # -----------------------------------------------------------------------------
-  # KODE UTAMA APLIKASI ANDA (Ditaruh di dalam blok 'else' ini)
-  # -----------------------------------------------------------------------------
+  # =============================================================================
+  # DASHBOARD UTAMA APLIKASI
+  # =============================================================================
   COLOR_MAP = {
       "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
       "biasa": {"marker": "red", "badge": "badge-red", "hex": "#dc2626"},
@@ -199,10 +197,23 @@ else:
     return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
 
 
+  def hitung_jarak_km(lat1, lon1, lat2, lon2):
+    R = 6371.0
+    lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = (
+        np.sin(dlat / 2.0) ** 2
+        + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2.0) ** 2
+    )
+    c = 2 * np.arcsin(np.sqrt(a))
+    return R * c
+
+
   df = load_data()
   model_bundle = load_model_artifacts()
 
-  # Sidebar & Filter
+  # Sidebar — Filter
   with st.sidebar:
     st.markdown("## 🏖️ BeachFinder")
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
@@ -241,7 +252,7 @@ else:
       & df["Rating Angka"].between(rating_range[0], rating_range[1])
   ].copy()
 
-  # Header Hero
+  # Hero Section
   st.markdown(
       """
         <div class="hero">
@@ -253,7 +264,7 @@ else:
       unsafe_allow_html=True,
   )
 
-  # Metrics Cards
+  # Metric Cards
   col1, col2, col3, col4 = st.columns(4)
   metric_items = [
       ("🏝️", len(df_filtered), "Pantai ditampilkan"),
@@ -347,6 +358,64 @@ else:
             </div>
             """,
           unsafe_allow_html=True,
+      )
+
+    st.markdown("---")
+    st.markdown("### 📍 Cari Pantai Terdekat dari Lokasi Anda")
+    st.caption(
+        "Aktifkan izin lokasi di browser Anda untuk melacak destinasi pantai"
+        " dalam radius 10 km."
+    )
+
+    user_loc = streamlit_geolocation()
+
+    if user_loc and user_loc.get("latitude") and user_loc.get("longitude"):
+      u_lat = user_loc["latitude"]
+      u_lon = user_loc["longitude"]
+      st.success(
+          f"Lokasi terdeteksi! (Latitude: {u_lat:.4f}, Longitude:"
+          f" {u_lon:.4f})"
+      )
+
+      df_lokasi = df.copy()
+      df_lokasi["Jarak_Km"] = df_lokasi.apply(
+          lambda row: hitung_jarak_km(
+              u_lat, u_lon, row["Latitude"], row["Longitude"]
+          ),
+          axis=1,
+      )
+
+      radius_maks = 10.0
+      df_terdekat = df_lokasi[df_lokasi["Jarak_Km"] <= radius_maks].sort_values(
+          "Jarak_Km"
+      )
+
+      if len(df_terdekat) > 0:
+        st.info(
+            f"Ditemukan **{len(df_terdekat)} pantai** dalam radius {radius_maks}"
+            " km dari posisi Anda:"
+        )
+        for _, r in df_terdekat.iterrows():
+          st.markdown(
+              f"""
+                    <div class="search-result-box" style="padding:15px; margin-bottom:10px;">
+                        <h4 style="margin:0 0 4px 0; color:#0f172a;">🌊 {r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km dari Anda)</span></h4>
+                        <p style="margin:2px 0; font-size:13px;">📍 Provinsi: {r['Provinsi']} | ⭐ Rating: {r['Rating Angka']} | 🏖️ Kualitas: <b>{r['Predikat'].title()}</b></p>
+                        <p style="margin:2px 0; font-size:12.5px; color:#475569;">💬 Ulasan: {r.get('Ulasan 1', 'Belum ada ulasan')}</p>
+                        <p style="margin:6px 0 0 0;"><a href="{r.get('Link Google Maps', '#')}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px;">Buka di Google Maps ↗</a></p>
+                    </div>
+                    """,
+              unsafe_allow_html=True,
+          )
+      else:
+        st.warning(
+            f"Tidak ada pantai yang ditemukan dalam radius {radius_maks} km"
+            " dari lokasi Anda saat ini."
+        )
+    else:
+      st.info(
+          "👆 Klik tombol di atas dan pilih **Allow / Izin** pada pop-up"
+          " browser untuk mendeteksi posisi Anda."
       )
 
     st.markdown("<br>", unsafe_allow_html=True)

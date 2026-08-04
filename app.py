@@ -391,7 +391,7 @@ with tab_peta:
     center_lon = df_filtered["Longitude"].mean()
 
     m = folium.Map(
-        location=[center_lat, center_lon], zoom_start=5, tiles="CartoDB positron"
+        location=[center_lat, center_lon], zoom_start=5, tiles="OpenStreetMap"
     )
     cluster = MarkerCluster().add_to(m)
 

@@ -5,31 +5,22 @@ Dibangun dengan Streamlit + Folium + XGBoost.
 
 Struktur file yang dibutuhkan di folder yang sama (satu repo):
     app.py
-    dataset_pantai_clean.csv
-    model_xgboost_wisata.pkl      -> model lokasi-only (fitur: Latitude, Longitude, Provinsi)
+    dataset_clean.csv
+    model_xgboost_wisata.pkl     -> model lokasi-only (fitur: Latitude, Longitude, Provinsi)
     label_encoder_target.pkl
     le_provinsi.pkl
     requirements.txt
-
-CATATAN MODEL:
-Predikat pada dataset asli 100% deterministik terhadap Rating Angka (tidak ada overlap
-rentang rating antar kelas), sehingga memasukkan Rating sebagai fitur prediksi membuat
-model hanya "menghafal" lookup table, bukan belajar pola lokasi. Model di sini sengaja
-dilatih HANYA dari Latitude, Longitude, dan Provinsi -- agar benar-benar berguna untuk
-menaksir kualitas pantai baru yang belum punya rating sama sekali. Konsekuensinya,
-akurasi pada kelas minoritas (Bagus, Cukup Bagus, Biasa) rendah karena data sangat
-timpang (90% berlabel "Sangat Bagus") -- ini keterbatasan data, bukan bug.
 """
 
-import streamlit as st
-import pandas as pd
-import numpy as np
+import os
 import altair as alt
 import folium
 from folium.plugins import MarkerCluster
-from streamlit_folium import st_folium
 import joblib
-import os
+import numpy as np
+import pandas as pd
+import streamlit as st
+from streamlit_folium import st_folium
 
 # =============================================================================
 # KONFIGURASI HALAMAN
@@ -153,7 +144,7 @@ st.markdown(
 )
 
 # =============================================================================
-# KONSTAN — SESUAI ACUAN PETA FOLIUM ASLI
+# KONSTAN
 # =============================================================================
 COLOR_MAP = {
     "sangat bagus": {"marker": "green", "badge": "badge-green", "hex": "#16a34a"},
@@ -162,56 +153,65 @@ COLOR_MAP = {
 }
 PREDIKAT_ORDER = ["Sangat Bagus", "Bagus", "Biasa"]
 
-DATA_PATH = "dataset_pantai_clean.csv"
+DATA_PATH = "dataset_clean.csv"
 MODEL_PATH = "model_xgboost_wisata.pkl"
 LE_TARGET_PATH = "label_encoder_target.pkl"
 LE_PROVINSI_PATH = "le_provinsi.pkl"
 
-# Kelas dengan sampel sangat sedikit di dataset asli -> prediksi untuk kelas ini
-# secara statistik kurang bisa diandalkan (lihat catatan di docstring atas).
 KELAS_MINORITAS = {"bagus", "biasa"}
 
 
 # =============================================================================
-# LOAD DATA & MODEL (DI-CACHE AGAR CEPAT)
+# LOAD DATA & MODEL (DI-CACHE)
 # =============================================================================
 @st.cache_data
 def load_data():
-    df = pd.read_csv(DATA_PATH)
-    df = df.dropna(subset=["Nama Pantai", "Provinsi", "Rating Angka", "Predikat", "Latitude", "Longitude"])
-    df["Predikat"] = df["Predikat"].str.strip().str.lower()
-    # Konsolidasi ke 3 kategori: "Cukup Bagus" digabung ke "Biasa"
-    df["Predikat"] = df["Predikat"].replace({"cukup bagus": "biasa"})
-    return df
+  df = pd.read_csv(DATA_PATH)
+  df = df.dropna(
+      subset=[
+          "Nama Pantai",
+          "Provinsi",
+          "Rating Angka",
+          "Predikat",
+          "Latitude",
+          "Longitude",
+      ]
+  )
+  df["Predikat"] = df["Predikat"].str.strip().str.lower()
+  df["Predikat"] = df["Predikat"].replace({"cukup bagus": "biasa"})
+  return df
 
 
 @st.cache_resource
 def load_model_artifacts():
-    """Mengembalikan (model, le_target, le_provinsi) atau None jika file belum ada."""
-    if not (os.path.exists(MODEL_PATH) and os.path.exists(LE_TARGET_PATH) and os.path.exists(LE_PROVINSI_PATH)):
-        return None
-    model = joblib.load(MODEL_PATH)
-    le_target = joblib.load(LE_TARGET_PATH)
-    le_provinsi = joblib.load(LE_PROVINSI_PATH)
-    return model, le_target, le_provinsi
+  if not (
+      os.path.exists(MODEL_PATH)
+      and os.path.exists(LE_TARGET_PATH)
+      and os.path.exists(LE_PROVINSI_PATH)
+  ):
+    return None
+  model = joblib.load(MODEL_PATH)
+  le_target = joblib.load(LE_TARGET_PATH)
+  le_provinsi = joblib.load(LE_PROVINSI_PATH)
+  return model, le_target, le_provinsi
 
 
 def stars_from_rating(rating: float) -> str:
-    penuh = int(round(rating))
-    penuh = max(0, min(5, penuh))
-    return "⭐" * penuh
+  penuh = int(round(rating))
+  penuh = max(0, min(5, penuh))
+  return "⭐" * penuh
 
 
 def badge_class(predikat_lower: str) -> str:
-    return COLOR_MAP.get(predikat_lower, {}).get("badge", "badge-gray")
+  return COLOR_MAP.get(predikat_lower, {}).get("badge", "badge-gray")
 
 
 def marker_color(predikat_lower: str) -> str:
-    return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
+  return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
 
 
 def hex_color(predikat_lower: str) -> str:
-    return COLOR_MAP.get(predikat_lower, {}).get("hex", "#6b7280")
+  return COLOR_MAP.get(predikat_lower, {}).get("hex", "#6b7280")
 
 
 df = load_data()
@@ -221,39 +221,42 @@ model_bundle = load_model_artifacts()
 # SIDEBAR — FILTER
 # =============================================================================
 with st.sidebar:
-    st.markdown("## 🏖️ BeachFinder")
-    st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
-    st.markdown("---")
+  st.markdown("## 🏖️ BeachFinder")
+  st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
+  st.markdown("---")
 
-    st.markdown("### 🔎 Filter Data")
+  st.markdown("### 🔎 Filter Data")
 
-    all_provinsi = sorted(df["Provinsi"].unique().tolist())
-    provinsi_pilihan = st.multiselect(
-        "Provinsi",
-        options=all_provinsi,
-        default=all_provinsi,
-    )
+  all_provinsi = sorted(df["Provinsi"].unique().tolist())
+  provinsi_pilihan = st.multiselect(
+      "Provinsi",
+      options=all_provinsi,
+      default=all_provinsi,
+  )
 
-    kualitas_options = [p for p in PREDIKAT_ORDER if p.lower() in df["Predikat"].unique()]
-    kualitas_pilihan = st.multiselect(
-        "Kualitas / Predikat",
-        options=kualitas_options,
-        default=kualitas_options,
-    )
+  kualitas_options = [
+      p for p in PREDIKAT_ORDER if p.lower() in df["Predikat"].unique()
+  ]
+  kualitas_pilihan = st.multiselect(
+      "Kualitas / Predikat",
+      options=kualitas_options,
+      default=kualitas_options,
+  )
 
-    rating_min, rating_max = float(df["Rating Angka"].min()), float(df["Rating Angka"].max())
-    rating_range = st.slider(
-        "Rentang Rating",
-        min_value=rating_min,
-        max_value=rating_max,
-        value=(rating_min, rating_max),
-        step=0.1,
-    )
+  rating_min, rating_max = float(df["Rating Angka"].min()), float(
+      df["Rating Angka"].max()
+  )
+  rating_range = st.slider(
+      "Rentang Rating",
+      min_value=rating_min,
+      max_value=rating_max,
+      value=(rating_min, rating_max),
+      step=0.1,
+  )
 
-    st.markdown("---")
-    st.caption("Dibangun dengan Streamlit · Folium · XGBoost")
+  st.markdown("---")
+  st.caption("Dibangun dengan Streamlit · Folium · XGBoost")
 
-# Terapkan filter
 kualitas_pilihan_lower = [k.lower() for k in kualitas_pilihan]
 df_filtered = df[
     df["Provinsi"].isin(provinsi_pilihan)
@@ -281,170 +284,217 @@ st.markdown(
 col1, col2, col3, col4 = st.columns(4)
 metric_items = [
     ("🏝️", len(df_filtered), "Pantai ditampilkan"),
-    ("⭐", f'{df_filtered["Rating Angka"].mean():.2f}' if len(df_filtered) else "0.00", "Rata-rata rating"),
-    ("🌟", int((df_filtered["Predikat"] == "sangat bagus").sum()), 'Predikat "Sangat Bagus"'),
+    (
+        "⭐",
+        f'{df_filtered["Rating Angka"].mean():.2f}'
+        if len(df_filtered)
+        else "0.00",
+        "Rata-rata rating",
+    ),
+    (
+        "🌟",
+        int((df_filtered["Predikat"] == "sangat bagus").sum()),
+        'Predikat "Sangat Bagus"',
+    ),
     ("📍", df_filtered["Provinsi"].nunique(), "Provinsi tercakup"),
 ]
 for col, (icon, value, label) in zip([col1, col2, col3, col4], metric_items):
-    with col:
-        st.markdown(
-            f'<div class="metric-card"><span class="icon">{icon}</span>'
-            f'<h2>{value}</h2><p>{label}</p></div>',
-            unsafe_allow_html=True,
-        )
+  with col:
+    st.markdown(
+        f'<div class="metric-card"><span class="icon">{icon}</span>'
+        f"<h2>{value}</h2><p>{label}</p></div>",
+        unsafe_allow_html=True,
+    )
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # =============================================================================
 # TABS
 # =============================================================================
-tab_peta, tab_prediksi, tab_data = st.tabs(["🗺️ Peta Interaktif", "🔮 Prediksi Kualitas Pantai", "📋 Tabel Data"])
+tab_peta, tab_prediksi, tab_data = st.tabs(
+    ["🗺️ Peta Interaktif", "🔮 Prediksi Kualitas Pantai", "📋 Tabel Data"]
+)
 
 # -----------------------------------------------------------------------------
 # TAB 1 — PETA
 # -----------------------------------------------------------------------------
 with tab_peta:
-    if len(df_filtered) == 0:
-        st.warning("Tidak ada data yang cocok dengan filter saat ini.")
-    else:
-        map_col, chart_col = st.columns([2.4, 1])
+  if len(df_filtered) == 0:
+    st.warning("Tidak ada data yang cocok dengan filter saat ini.")
+  else:
+    map_col, chart_col = st.columns([2.4, 1])
 
-        with map_col:
-            center_lat = df_filtered["Latitude"].mean()
-            center_lon = df_filtered["Longitude"].mean()
+    with map_col:
+      center_lat = df_filtered["Latitude"].mean()
+      center_lon = df_filtered["Longitude"].mean()
 
-            m = folium.Map(location=[center_lat, center_lon], zoom_start=5, tiles="CartoDB positron")
-            cluster = MarkerCluster().add_to(m)
+      m = folium.Map(
+          location=[center_lat, center_lon],
+          zoom_start=5,
+          tiles="CartoDB positron",
+      )
+      cluster = MarkerCluster().add_to(m)
 
-            for _, row in df_filtered.iterrows():
-                predikat_lower = row["Predikat"]
-                predikat_title = predikat_lower.title()
-                color = marker_color(predikat_lower)
-                stars = stars_from_rating(row["Rating Angka"])
-                link = row.get("Link Google Maps", "")
+      for _, row in df_filtered.iterrows():
+        predikat_lower = row["Predikat"]
+        predikat_title = predikat_lower.title()
+        color = marker_color(predikat_lower)
+        stars = stars_from_rating(row["Rating Angka"])
+        link = row.get("Link Google Maps", "")
 
-                popup_html = f"""
-                <div style="font-family: 'Segoe UI', sans-serif; width: 230px;">
-                    <h4 style="margin: 0 0 6px 0; color: #0f172a;">{row['Nama Pantai']}</h4>
+        # Ambil ulasan 1 - 3
+        u1 = (
+            row["Ulasan 1"]
+            if pd.notna(row.get("Ulasan 1"))
+            else "Belum ada ulasan"
+        )
+        u2 = (
+            row["Ulasan 2"]
+            if pd.notna(row.get("Ulasan 2"))
+            else "Belum ada ulasan"
+        )
+        u3 = (
+            row["Ulasan 3"]
+            if pd.notna(row.get("Ulasan 3"))
+            else "Belum ada ulasan"
+        )
+
+        popup_html = f"""
+                <div style="font-family: 'Segoe UI', sans-serif; width: 250px; font-size: 11.5px;">
+                    <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
                     <p style="margin: 2px 0;">📍 <b>Provinsi:</b> {row['Provinsi']}</p>
                     <p style="margin: 2px 0;">⭐ <b>Rating:</b> {row['Rating Angka']} {stars}</p>
-                    <p style="margin: 2px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
+                    <p style="margin: 2px 0 6px 0;">🏖️ <b>Kualitas:</b> {predikat_title}</p>
+                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                    <p style="margin: 2px 0;"><b>💬 Ulasan 1:</b> {u1}</p>
+                    <p style="margin: 2px 0;"><b>💬 Ulasan 2:</b> {u2}</p>
+                    <p style="margin: 2px 0 6px 0;"><b>💬 Ulasan 3:</b> {u3}</p>
                     {f'<a href="{link}" target="_blank">Buka di Google Maps ↗</a>' if isinstance(link, str) and link else ''}
                 </div>
                 """
 
-                folium.Marker(
-                    location=[row["Latitude"], row["Longitude"]],
-                    popup=folium.Popup(popup_html, max_width=260),
-                    tooltip=row["Nama Pantai"],
-                    icon=folium.Icon(color=color, icon="umbrella-beach", prefix="fa"),
-                ).add_to(cluster)
+        folium.Marker(
+            location=[row["Latitude"], row["Longitude"]],
+            popup=folium.Popup(popup_html, max_width=280),
+            tooltip=row["Nama Pantai"],
+            icon=folium.Icon(color=color, icon="umbrella-beach", prefix="fa"),
+        ).add_to(cluster)
 
-            st_folium(m, use_container_width=True, height=560, returned_objects=[])
+      st_folium(m, use_container_width=True, height=560, returned_objects=[])
 
-            st.markdown(
-                """
+      st.markdown(
+          """
                 <div style="display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;">
                     <span class="legend-dot"><span class="dot" style="background:#16a34a;"></span>Sangat Bagus</span>
                     <span class="legend-dot"><span class="dot" style="background:#2563eb;"></span>Bagus</span>
                     <span class="legend-dot"><span class="dot" style="background:#dc2626;"></span>Biasa</span>
                 </div>
                 """,
-                unsafe_allow_html=True,
-            )
+          unsafe_allow_html=True,
+      )
 
-        with chart_col:
-            st.markdown("##### Distribusi Kualitas")
-            dist = df_filtered["Predikat"].value_counts().reset_index()
-            dist.columns = ["Predikat", "Jumlah"]
-            dist["Predikat"] = dist["Predikat"].str.title()
-            dist["warna"] = dist["Predikat"].str.lower().map(hex_color)
+    with chart_col:
+      st.markdown("##### Distribusi Kualitas")
+      dist = df_filtered["Predikat"].value_counts().reset_index()
+      dist.columns = ["Predikat", "Jumlah"]
+      dist["Predikat"] = dist["Predikat"].str.title()
+      dist["warna"] = dist["Predikat"].str.lower().map(hex_color)
 
-            chart = (
-                alt.Chart(dist)
-                .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
-                .encode(
-                    x=alt.X("Predikat:N", sort="-y", title=None),
-                    y=alt.Y("Jumlah:Q", title=None),
-                    color=alt.Color("warna:N", scale=None, legend=None),
-                    tooltip=["Predikat", "Jumlah"],
-                )
-                .properties(height=220)
-            )
-            st.altair_chart(chart, use_container_width=True)
+      chart = (
+          alt.Chart(dist)
+          .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+          .encode(
+              x=alt.X("Predikat:N", sort="-y", title=None),
+              y=alt.Y("Jumlah:Q", title=None),
+              color=alt.Color("warna:N", scale=None, legend=None),
+              tooltip=["Predikat", "Jumlah"],
+          )
+          .properties(height=220)
+      )
+      st.altair_chart(chart, use_container_width=True)
 
-            st.markdown("##### 🏆 Top 5 Pantai")
-            top5 = df_filtered.sort_values("Rating Angka", ascending=False).head(5)
-            for _, r in top5.iterrows():
-                st.markdown(
-                    f"""<div class="info-card" style="margin-bottom:8px; padding:10px 14px;">
+      st.markdown("##### 🏆 Top 5 Pantai")
+      top5 = df_filtered.sort_values("Rating Angka", ascending=False).head(5)
+      for _, r in top5.iterrows():
+        st.markdown(
+            f"""<div class="info-card" style="margin-bottom:8px; padding:10px 14px;">
                     <b>{r['Nama Pantai']}</b><br>
                     <span style="font-size:12.5px; color:#64748b;">{r['Provinsi']} · {r['Rating Angka']} ⭐</span>
                     </div>""",
-                    unsafe_allow_html=True,
-                )
+            unsafe_allow_html=True,
+        )
 
 # -----------------------------------------------------------------------------
 # TAB 2 — PREDIKSI
 # -----------------------------------------------------------------------------
 with tab_prediksi:
-    st.markdown("### 🔮 Prediksi Kualitas Pantai Baru")
-    st.caption(
-        "Menaksir predikat kualitas sebuah titik pantai yang **belum punya rating** — "
-        "hanya berdasarkan lokasinya (provinsi, latitude, longitude)."
-    )
+  st.markdown("### 🔮 Prediksi Kualitas Pantai Baru")
+  st.caption(
+      "Menaksir predikat kualitas sebuah titik pantai yang **belum punya rating**"
+      " — hanya berdasarkan lokasinya (provinsi, latitude, longitude)."
+  )
 
-    st.markdown(
-        """
+  st.markdown(
+      """
         <div class="caution-box">
-        ⚠️ <b>Perlu diketahui:</b> dataset training sangat timpang — sekitar 90% pantai
-        berpredikat "Sangat Bagus". Akibatnya model jauh lebih akurat menebak kelas
-        "Sangat Bagus" dibanding kelas lain ("Bagus", "Biasa"). Anggap hasil
-        prediksi ini sebagai <i>indikasi awal</i>, bukan penilaian pasti.
+        ⚠️ <b>Perlu diketahui:</b> dataset training sangat timpang — sekitar 90%"
+        " pantai berpredikat "Sangat Bagus". Akibatnya model jauh lebih akurat"
+        " menebak kelas "Sangat Bagus" dibanding kelas lain ("Bagus", "Biasa")."
+        " Anggap hasil prediksi ini sebagai <i>indikasi awal</i>, bukan"
+        " penilaian pasti.
         </div>
         <br>
         """,
-        unsafe_allow_html=True,
+      unsafe_allow_html=True,
+  )
+
+  if model_bundle is None:
+    st.error(
+        "File model belum ditemukan di folder aplikasi. Pastikan"
+        " `model_xgboost_wisata.pkl`, `label_encoder_target.pkl`, dan"
+        " `le_provinsi.pkl` berada di folder yang sama dengan `app.py`."
     )
+  else:
+    model, le_target, le_provinsi = model_bundle
 
-    if model_bundle is None:
-        st.error(
-            "File model belum ditemukan di folder aplikasi. Pastikan `model_xgboost_wisata.pkl`, "
-            "`label_encoder_target.pkl`, dan `le_provinsi.pkl` berada di folder yang sama dengan `app.py`."
+    with st.form("form_prediksi"):
+      c1, c2, c3 = st.columns(3)
+      with c1:
+        provinsi_input = st.selectbox(
+            "Provinsi", options=sorted(le_provinsi.classes_.tolist())
         )
-    else:
-        model, le_target, le_provinsi = model_bundle
+      with c2:
+        lat_input = st.number_input(
+            "Latitude", value=float(df["Latitude"].mean()), format="%.6f"
+        )
+      with c3:
+        lon_input = st.number_input(
+            "Longitude", value=float(df["Longitude"].mean()), format="%.6f"
+        )
 
-        with st.form("form_prediksi"):
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                provinsi_input = st.selectbox("Provinsi", options=sorted(le_provinsi.classes_.tolist()))
-            with c2:
-                lat_input = st.number_input("Latitude", value=float(df["Latitude"].mean()), format="%.6f")
-            with c3:
-                lon_input = st.number_input("Longitude", value=float(df["Longitude"].mean()), format="%.6f")
+      submitted = st.form_submit_button(
+          "Prediksi Kualitas", use_container_width=True
+      )
 
-            submitted = st.form_submit_button("Prediksi Kualitas", use_container_width=True)
+    if submitted:
+      try:
+        provinsi_encoded = le_provinsi.transform([provinsi_input])[0]
+        X_new = pd.DataFrame(
+            [[lat_input, lon_input, provinsi_encoded]],
+            columns=["Latitude", "Longitude", "Provinsi"],
+        )
+        pred_encoded = model.predict(X_new)[0]
+        pred_label = le_target.inverse_transform([pred_encoded])[0]
+        pred_lower = str(pred_label).strip().lower()
 
-        if submitted:
-            try:
-                provinsi_encoded = le_provinsi.transform([provinsi_input])[0]
-                X_new = pd.DataFrame(
-                    [[lat_input, lon_input, provinsi_encoded]],
-                    columns=["Latitude", "Longitude", "Provinsi"],
-                )
-                pred_encoded = model.predict(X_new)[0]
-                pred_label = le_target.inverse_transform([pred_encoded])[0]
-                pred_lower = str(pred_label).strip().lower()
+        proba = None
+        confidence = None
+        if hasattr(model, "predict_proba"):
+          proba = model.predict_proba(X_new)[0]
+          confidence = proba[pred_encoded] * 100
 
-                proba = None
-                confidence = None
-                if hasattr(model, "predict_proba"):
-                    proba = model.predict_proba(X_new)[0]
-                    confidence = proba[pred_encoded] * 100
-
-                st.markdown(
-                    f"""
+        st.markdown(
+            f"""
                     <div class="result-box">
                         <p style="margin:0 0 8px 0; font-size:13px; color:#166534; font-weight:600;">HASIL PREDIKSI</p>
                         <span class="badge {badge_class(pred_lower)}" style="font-size:18px; padding:10px 22px;">
@@ -452,34 +502,51 @@ with tab_prediksi:
                         </span>
                     </div>
                     """,
-                    unsafe_allow_html=True,
-                )
-                if confidence is not None:
-                    st.caption(f"Tingkat keyakinan model: {confidence:.1f}%")
+            unsafe_allow_html=True,
+        )
+        if confidence is not None:
+          st.caption(f"Tingkat keyakinan model: {confidence:.1f}%")
 
-                if pred_lower in KELAS_MINORITAS:
-                    st.info(
-                        "ℹ️ Kelas ini termasuk minoritas di data training — anggap hasil ini sebagai "
-                        "sinyal kasar, dan tetap cek langsung kondisi lapangan sebelum mengambil keputusan."
-                    )
+        if pred_lower in KELAS_MINORITAS:
+          st.info(
+              "ℹ️ Kelas ini termasuk minoritas di data training — anggap hasil"
+              " ini sebagai sinyal kasar, dan tetap cek langsung kondisi"
+              " lapangan sebelum mengambil keputusan."
+          )
 
-            except Exception as e:
-                st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
+      except Exception as e:
+        st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
 
 # -----------------------------------------------------------------------------
 # TAB 3 — TABEL DATA
 # -----------------------------------------------------------------------------
 with tab_data:
-    st.markdown("### 📋 Data Pantai (sesuai filter)")
-    tampil = df_filtered.copy()
-    tampil["Predikat"] = tampil["Predikat"].str.title()
-    kolom_tampil = ["Nama Pantai", "Provinsi", "Rating Angka", "Predikat", "Latitude", "Longitude"]
-    st.dataframe(tampil[kolom_tampil].reset_index(drop=True), use_container_width=True, height=500)
+  st.markdown("### 📋 Data Pantai (sesuai filter)")
+  tampil = df_filtered.copy()
+  tampil["Predikat"] = tampil["Predikat"].str.title()
 
-    csv_bytes = tampil[kolom_tampil].to_csv(index=False).encode("utf-8")
-    st.download_button(
-        "⬇️ Unduh data terfilter (CSV)",
-        data=csv_bytes,
-        file_name="pantai_terfilter.csv",
-        mime="text/csv",
-    )
+  kolom_tampil = [
+      "Nama Pantai",
+      "Provinsi",
+      "Rating Angka",
+      "Predikat",
+      "Jumlah Ulasan",
+      "Ulasan 1",
+      "Ulasan 2",
+      "Ulasan 3",
+      "Latitude",
+      "Longitude",
+  ]
+  st.dataframe(
+      tampil[kolom_tampil].reset_index(drop=True),
+      use_container_width=True,
+      height=500,
+  )
+
+  csv_bytes = tampil[kolom_tampil].to_csv(index=False).encode("utf-8")
+  st.download_button(
+      "⬇️ Unduh data terfilter (CSV)",
+      data=csv_bytes,
+      file_name="pantai_terfilter.csv",
+      mime="text/csv",
+  )

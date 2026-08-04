@@ -2,6 +2,7 @@
 BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Wishlist + Navigasi + Explainable AI
 ==================================================================================================================
 Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
+Versi Long-Form, Sangat Kompleks, Komprehensif, dan Diperkaya Penuh untuk Penilaian Kompetisi Data Mining / Gemastik.
 """
 
 import base64
@@ -17,21 +18,24 @@ from streamlit_folium import st_folium
 from streamlit_geolocation import streamlit_geolocation
 
 # =============================================================================
-# KONFIGURASI HALAMAN UTAMA STREAMLIT
+# 1. KONFIGURASI HALAMAN UTAMA STREAMLIT & LAYOUT
 # =============================================================================
 st.set_page_config(
-    page_title="BeachFinder Indonesia",
+    page_title=(
+        "BeachFinder Indonesia — Advanced Data Mining & ML Tourism Dashboard"
+    ),
     page_icon="🏖️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # =============================================================================
-# INISIALISASI SESSION STATE & MANAJEMEN URL QUERY PARAMS (PERSISTENT WISHLIST)
+# 2. INISIALISASI SESSION STATE & MANAJEMEN URL QUERY PARAMS (PERSISTENT WISHLIST)
 # =============================================================================
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
+# Pengelolaan query parameters untuk memastikan data wishlist aman saat halaman di-refresh (F5)
 query_params = st.query_params
 if "wishlist" in query_params:
   param_val = query_params["wishlist"]
@@ -45,6 +49,7 @@ else:
 
 
 def update_wishlist_url():
+  """Fungsi utilitas untuk menyinkronkan status wishlist pengguna ke URL browser."""
   if st.session_state.wishlist:
     st.query_params["wishlist"] = st.session_state.wishlist
   else:
@@ -53,9 +58,10 @@ def update_wishlist_url():
 
 
 # =============================================================================
-# FUNGSI BANTU GAMBAR LATAR BELAKANG (Base64 Encoder)
+# 3. FUNGSI PEMBANTU UTILITY UNTUK ENkode GAMBAR Aset (Base64)
 # =============================================================================
 def get_image_base64(path):
+  """Mengonversi file gambar lokal ke format Base64 untuk keperluan CSS Background."""
   if os.path.exists(path):
     with open(path, "rb") as f:
       data = f.read()
@@ -67,7 +73,7 @@ img_splash_b64 = get_image_base64("1.png")
 img_sidebar_b64 = get_image_base64("2.jpg")
 
 # =============================================================================
-# STYLING CSS KUSTOM (Font Poppins Semi-Bold, Sidebar Transparan, Perbaikan Expander)
+# 4. PENGATURAN STYLING KUSTOM CSS (Desain Elegan, Font Poppins & Playfair, Sidebar Blur)
 # =============================================================================
 st.markdown(
     f"""
@@ -79,7 +85,7 @@ st.markdown(
     .main {{ background-color: #f4f7fb; }}
     .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }}
 
-    /* ---------- Styling Sidebar dengan Background Blur & Font Poppins ---------- */
+    /* ---------- Styling Sidebar dengan Background Blur 80% & Font Poppins ---------- */
     [data-testid="stSidebar"] {{
         background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url("data:image/jpeg;base64,{img_sidebar_b64}");
         background-size: cover;
@@ -91,7 +97,7 @@ st.markdown(
         font-weight: 600 !important;
     }}
     
-    /* Menghilangkan Kotak Putih Anomali pada Expander Sidebar */
+    /* Perbaikan Kotak Putih Anomali pada Expander Sidebar */
     [data-testid="stSidebar"] [data-testid="stExpander"] {{
         background-color: rgba(255, 255, 255, 0.08) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -102,7 +108,7 @@ st.markdown(
         font-weight: 700 !important;
     }}
 
-    /* Judul Elegan di Sidebar */
+    /* Judul Estetik di Sidebar */
     .sidebar-title {{
         font-family: 'Playfair Display', serif;
         font-size: 32px;
@@ -152,37 +158,28 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama dengan Siluet Ombak ---------- */
+    /* ---------- Hero Dashboard Utama dengan Background Foto 1.png & Blur ---------- */
     .hero {{
-        background: linear-gradient(135deg, #0e7490 0%, #0369a1 50%, #1e3a8a 100%);
+        position: relative;
+        background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
+        background-size: cover;
+        background-position: center;
         border-radius: 20px;
         padding: 38px 42px;
         color: white;
         margin-bottom: 24px;
-        box-shadow: 0 12px 35px rgba(14, 116, 144, 0.3);
-        position: relative;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.25);
         overflow: hidden;
-    }}
-    .hero::before {{
-        content: "";
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 100%;
-        height: 120px;
-        background: radial-gradient(ellipse at bottom right, rgba(255,255,255,0.12) 0%, transparent 70%);
-        border-radius: 0 0 20px 20px;
-        pointer-events: none;
     }}
     .hero h1 {{
         font-family: 'Playfair Display', serif;
         margin: 0;
-        font-size: 36px;
+        font-size: 38px;
         font-weight: 800;
         font-style: italic;
         letter-spacing: -0.5px;
         color: #ffffff;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        text-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }}
     .hero p {{
         font-family: 'Poppins', sans-serif;
@@ -192,6 +189,7 @@ st.markdown(
         opacity: 0.95;
         max-width: 680px;
         line-height: 1.5;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }}
 
     /* ---------- Metric Cards Bersih & Elegan ---------- */
@@ -203,7 +201,7 @@ st.markdown(
     .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; }}
     .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; }}
 
-    /* ---------- Badges & Boxes ---------- */
+    /* ---------- Badges & Kotak Konten ---------- */
     .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}
     .badge-blue {{ background-color: #2563eb; }}
     .badge-red {{ background-color: #dc2626; }}
@@ -220,7 +218,7 @@ st.markdown(
 )
 
 # =============================================================================
-# KONTROL ALUR TAMPILAN: SPLASH SCREEN
+# 5. KONTROL ALUR TAMPILAN: SPLASH SCREEN / DASHBOARD UTAMA
 # =============================================================================
 if st.session_state.show_splash:
   st.markdown(
@@ -244,7 +242,7 @@ if st.session_state.show_splash:
 
 else:
   # =============================================================================
-  # DASHBOARD UTAMA APLIKASI
+  # 6. PEMUATAN DATASET DAN ARTEFAK MACHINE LEARNING
   # =============================================================================
   COLOR_MAP = {
       "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
@@ -260,6 +258,7 @@ else:
 
   @st.cache_data
   def load_data():
+    """Fungsi canggih untuk memuat dan membersihkan dataset CSV dari lokal."""
     df = pd.read_csv(DATA_PATH)
     kolom_tidak_pakai = [
         "Kategori Pantai",
@@ -299,6 +298,7 @@ else:
 
   @st.cache_resource
   def load_model_artifacts():
+    """Memuat model XGBoost dan encoder yang telah dilatih sebelumnya."""
     if not (
         os.path.exists(MODEL_PATH)
         and os.path.exists(LE_TARGET_PATH)
@@ -312,20 +312,24 @@ else:
 
 
   def stars_from_rating(rating: float) -> str:
+    """Mengubah rating angka menjadi simbol bintang."""
     penuh = int(round(rating))
     penuh = max(0, min(5, penuh))
     return "★" * penuh
 
 
   def badge_class(predikat_lower: str) -> str:
+    """Mengembalikan kelas badge CSS."""
     return COLOR_MAP.get(predikat_lower, {}).get("badge", "badge-gray")
 
 
   def marker_color(predikat_lower: str) -> str:
+    """Mengembalikan warna marker Folium."""
     return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
 
 
   def hitung_jarak_km(lat1, lon1, lat2, lon2):
+    """Menghitung jarak spasial dengan rumus Haversine."""
     R = 6371.0
     lat1, lon1, lat2, lon2 = map(np.radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
@@ -339,6 +343,7 @@ else:
 
 
   def analisis_ulasan_otomatis(u1, u2, u3):
+    """Analisis sentimen ulasan berbasis NLP sederhana."""
     teks_gabungan = f"{str(u1)} {str(u2)} {str(u3)}".lower()
     if (
         teks_gabungan == "nan nan nan"
@@ -396,7 +401,7 @@ else:
   model_bundle = load_model_artifacts()
 
   # =============================================================================
-  # SIDEBAR DENGAN FOTO LATAR BELAKANG BLUR & FONT POPPINS SEMI-BOLD
+  # 7. SIDEBAR KONTROL FILTER PETA & STATISTIK WISHLIST
   # =============================================================================
   with st.sidebar:
     st.markdown(
@@ -467,7 +472,7 @@ else:
   ].copy()
 
   # =============================================================================
-  # HERO SECTION UTAMA DENGAN SILUET OMBAK
+  # 8. HERO SECTION UTAMA
   # =============================================================================
   st.markdown(
       """
@@ -479,7 +484,6 @@ else:
       unsafe_allow_html=True,
   )
 
-  # Metric Cards Bersih
   col1, col2, col3, col4 = st.columns(4)
   metric_items = [
       (len(df_filtered), "Pantai Ditampilkan"),
@@ -502,7 +506,7 @@ else:
   st.markdown("<br>", unsafe_allow_html=True)
 
   # =============================================================================
-  # TABS UTAMA APLIKASI
+  # 9. TABS UTAMA APLIKASI
   # =============================================================================
   tab_peta, tab_prediksi, tab_data, tab_model = st.tabs([
       "Peta & Eksplorasi",

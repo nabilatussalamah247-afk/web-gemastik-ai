@@ -3,6 +3,8 @@ BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + 
 ==================================================================================================================
 Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation + Model Transparency.
 Versi Long-Form, Sangat Kompleks, Komprehensif, dan Diperkaya Penuh untuk Penilaian Kompetisi Data Mining / Gemastik.
+Modul ini mengintegrasikan pemrosesan data geospasial, analisis ulasan berbasis Natural Language Processing (NLP),
+serta model Machine Learning Extreme Gradient Boosting (XGBoost) untuk klasifikasi destinasi wisata bahari.
 """
 
 import base64
@@ -157,7 +159,7 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
-    /* ---------- Hero Dashboard Utama (Memaksa Font Playfair Display Estetik secara Mutlak) ---------- */
+    /* ---------- Hero Dashboard Utama (Background Foto 1.png & Blur) ---------- */
     .hero {{
         position: relative;
         background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
@@ -169,16 +171,6 @@ st.markdown(
         margin-bottom: 24px;
         box-shadow: 0 12px 35px rgba(15, 23, 42, 0.25);
         overflow: hidden;
-    }}
-    .hero h1 {{
-        font-family: 'Playfair Display', serif !important;
-        margin: 0 !important;
-        font-size: 38px !important;
-        font-weight: 800 !important;
-        font-style: italic !important;
-        letter-spacing: -0.5px !important;
-        color: #ffffff !important;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;
     }}
     .hero p {{
         font-family: 'Poppins', sans-serif !important;
@@ -472,12 +464,12 @@ else:
   ].copy()
 
   # =============================================================================
-  # 8. HERO SECTION UTAMA
+  # 8. HERO SECTION UTAMA (Memaksa Inline Font Playfair Display Estetik secara Mutlak)
   # =============================================================================
   st.markdown(
       """
         <div class="hero">
-            <h1>BeachFinder Indonesia</h1>
+            <h1 style="font-family: 'Playfair Display', serif !important; font-style: italic !important; font-weight: 800 !important; font-size: 38px !important; color: #ffffff !important; margin: 0 !important; text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;">BeachFinder Indonesia</h1>
             <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter, analisis teks ulasan NLP, navigasi rute perjalanan, wishlist, dan prediksi kualitas berbasis Machine Learning.</p>
         </div>
         """,

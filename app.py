@@ -295,14 +295,14 @@ else:
     else:
       df["Jumlah Ulasan"] = 100
 
-    # --- DROP / HAPUS PANTAI TERTENTU DARI APLIKASI (Sesuai Nama Persis di CSV) ---
+    # --- DROP / HAPUS PANTAI TERTENTU DARI APLIKASI ---
     pantai_yang_dihapus = [
         "Melasti Beach",
         "Pantai Melasti",
         "Pantai Baru",
-    ]  # Menggunakan "Pantai Baru"
+    ]
     df = df[~df["Nama Pantai"].isin(pantai_yang_dihapus)]
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------
 
     def map_provinsi(val):
       val_str = str(val).strip()
@@ -424,7 +424,6 @@ else:
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
     st.markdown("---")
 
-    # Tombol praktis untuk membersihkan cache Streamlit jika data dirasa belum ter-refresh
     if st.button("🧹 Clear Cache & Refresh Data", use_container_width=True):
       st.cache_data.clear()
       st.success("Cache dibersihkan! Memuat ulang...")
@@ -1010,5 +1009,5 @@ else:
             </p>
         </div>
         """,
-        unsafe_allow_html=Thread_XAI := True,
+        unsafe_allow_html=True,
     )

@@ -1,7 +1,7 @@
 """
-BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Persistent Wishlist
-==================================================================================================
-Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Query Params Wishlist.
+BeachFinder Indonesia — Dashboard Peta Interaktif + Prediksi Kualitas + NLP + Wishlist + Navigasi Rute
+======================================================================================================
+Dibangun dengan Streamlit + Folium + XGBoost + Geolocation + Sentiment + Wishlist + Navigation Directions.
 """
 
 import os
@@ -126,7 +126,7 @@ if st.session_state.show_splash:
       """
         <div class="splash-container">
             <h1>🏖️ Selamat Datang di BeachFinder Indonesia</h1>
-            <p>Jelajahi keindahan destinasi pantai nusantara, temukan informasi ulasan terpercaya, analisis teks ulasan, dan prediksi kualitas pantai berbasis Machine Learning.</p>
+            <p>Jelajahi keindahan destinasi pantai nusantara, temukan informasi ulasan terpercaya, analisis teks ulasan, navigasi rute, dan prediksi kualitas pantai berbasis Machine Learning.</p>
         </div>
         """,
       unsafe_allow_html=True,
@@ -351,7 +351,7 @@ else:
         <div class="hero">
             <h1>🏖️ BeachFinder Indonesia</h1>
             <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter,
-            analisis teks ulasan, wishlist pribadi, dan prediksi kualitas berbasis Machine Learning.</p>
+            analisis teks ulasan, navigasi rute perjalanan, wishlist, dan prediksi kualitas berbasis Machine Learning.</p>
         </div>
         """,
       unsafe_allow_html=True,
@@ -394,7 +394,7 @@ else:
   ])
 
   with tab_peta:
-    # 1. PENCARIAN UTAMA PANTAI (Lengkap dengan Predikat & Ulasan)
+    # 1. PENCARIAN UTAMA PANTAI
     st.markdown("### 🔍 Cari Destinasi Pantai")
     st.caption(
         "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
@@ -480,7 +480,7 @@ else:
           )
           st.rerun()
 
-    # 2. FITUR CARI PANTAI TERDEKAT (GEOLOKASI)
+    # 2. FITUR CARI PANTAI TERDEKAT + TOMBOL NAVIGASI RUTE (DIRECTIONS)
     st.markdown("---")
     st.markdown("### 📍 Cari Pantai Terdekat dari Lokasi Anda")
     st.caption("Aktifkan izin lokasi browser untuk melacak pantai dalam 10 km.")
@@ -506,12 +506,23 @@ else:
       if len(df_terdekat) > 0:
         st.info(f"Ditemukan **{len(df_terdekat)} pantai** dalam radius 10 km:")
         for _, r in df_terdekat.iterrows():
+          # Link Google Maps Directions (Rute perjalanan dari titik GPS user ke pantai)
+          rute_url = f"https://www.google.com/maps/dir/?api=1&origin={u_lat},{u_lon}&destination={r['Latitude']},{r['Longitude']}"
+          maps_url = (
+              r.get("Link Google Maps", "#")
+              if pd.notna(r.get("Link Google Maps"))
+              else "#"
+          )
+
           st.markdown(
               f"""
                     <div class="search-result-box" style="padding:15px; margin-bottom:10px;">
                         <h4 style="margin:0 0 4px 0; color:#0f172a;">🌊 {r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
                         <p style="margin:2px 0; font-size:13px;">📍 Provinsi: {r['Provinsi']} | ⭐ Rating: {r['Rating Angka']} | 🏖️ Kualitas: <b>{r['Predikat'].title()}</b></p>
-                        <p style="margin:6px 0 0 0;"><a href="{r.get('Link Google Maps', '#')}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px;">Buka di Google Maps ↗</a></p>
+                        <p style="margin:8px 0 0 0;">
+                            <a href="{maps_url}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px; margin-right: 15px;">Buka Lokasi di Maps ↗</a>
+                            <a href="{rute_url}" target="_blank" style="text-decoration:none; background-color:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-weight:600; font-size:12px;">🧭 Lihat Rute Navigasi ↗</a>
+                        </p>
                     </div>
                     """,
               unsafe_allow_html=True,
@@ -524,7 +535,7 @@ else:
     else:
       st.info("👆 Klik tombol di atas dan izinkan akses lokasi di browser.")
 
-    # 3. PETA SEBARAN DESTINASI PANTAI (Lengkap dengan Pop-up Detail)
+    # 3. PETA SEBARAN DESTINASI PANTAI
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### 🗺️ Peta Sebaran Destinasi Pantai")
 

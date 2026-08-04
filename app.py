@@ -31,10 +31,8 @@ st.set_page_config(
 if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
-# Membaca data wishlist dari URL query params agar aman saat di-refresh
 query_params = st.query_params
 if "wishlist" in query_params:
-  # Query params bisa berupa string tunggal atau list, kita normalisasi ke list
   param_val = query_params["wishlist"]
   if isinstance(param_val, str):
     st.session_state.wishlist = [param_val]
@@ -46,7 +44,6 @@ else:
 
 
 def update_wishlist_url():
-  """Fungsi untuk menyinkronkan wishlist ke URL browser"""
   if st.session_state.wishlist:
     st.query_params["wishlist"] = st.session_state.wishlist
   else:
@@ -463,7 +460,6 @@ else:
           unsafe_allow_html=True,
       )
 
-      # Tombol Wishlist Interaktif dengan Sinkronisasi URL
       is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
       if not is_in_wishlist:
         if st.button("❤️ Simpan ke Pantai Favorit Saya"):

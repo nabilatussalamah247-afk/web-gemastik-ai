@@ -423,7 +423,7 @@ else:
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
     st.markdown("---")
 
-    if st.button("🧹 Clear Cache & Refresh Data", use_container_width=True):
+    if st.button(" Clear Cache & Refresh Data", use_container_width=True):
       st.cache_data.clear()
       st.success("Cache dibersihkan! Memuat ulang...")
       st.rerun()

@@ -78,7 +78,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Perbaikan Expander & Kotak Multiselect Sidebar)
+# 4. PENGATURAN STYLING KUSTOM CSS (Background Gradasi Elegan & Komponen Lainnya)
 # =============================================================================
 st.markdown(
     f"""
@@ -87,8 +87,26 @@ st.markdown(
 
     html, body, [class*="css"] {{ font-family: 'Poppins', sans-serif; }}
 
-    .main {{ background-color: #f4f7fb; }}
-    .block-container {{ padding-top: 1.2rem; padding-bottom: 2rem; max-width: 1200px; }}
+    /* ---------- PERUBAHAN UTAMA: Background Gradasi Laut & Siluet Halus ---------- */
+    .main {{
+        background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(30, 58, 138, 0.85)), url("data:image/png;base64,{img_splash_b64}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+    
+    .block-container {{ 
+        padding-top: 1.2rem; 
+        padding-bottom: 2rem; 
+        max-width: 1200px; 
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        margin-top: 20px;
+        margin-bottom: 20px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }}
 
     /* ---------- Styling Sidebar dengan Background Blur & Font Poppins ---------- */
     [data-testid="stSidebar"] {{
@@ -532,7 +550,6 @@ else:
         st.info("Belum ada pantai favorit disimpan.")
       else:
         for w_item in st.session_state.wishlist:
-          # Mencari link Google Maps berdasarkan Nama Pantai di dataframe
           match_row = df[df["Nama Pantai"] == w_item]
           if (
               not match_row.empty
@@ -926,13 +943,13 @@ else:
 
           pred_encoded = model.predict(X_new)[0]
           pred_label = le_target.inverse_transform([pred_encoded])[0]
-          pred_lower = str(pred_label).strip().lower()
+background_lower = str(pred_label).strip().lower()
 
           st.markdown(
               f"""
                         <div class="result-box">
                             <p style="margin:0 0 8px 0; font-size:13px; color:#166534; font-weight:600;">HASIL PREDIKSI</p>
-                            <span class="badge {badge_class(pred_lower)}" style="font-size:18px; padding:10px 22px;">
+                            <span class="badge {badge_class(background_lower)}" style="font-size:18px; padding:10px 22px;">
                                 {str(pred_label).title()}
                             </span>
                         </div>

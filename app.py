@@ -135,9 +135,7 @@ st.markdown(
         font-weight: 700 !important;
     }}
 
-    /* ========================================================================= */
-    /* FIX EKSTREM: Memaksa kotak background Multiselect menjadi gelap */
-    /* ========================================================================= */
+    /* Memaksa kotak background Multiselect menjadi gelap */
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] > div:nth-child(1) {{
         background-color: rgba(15, 23, 42, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -149,22 +147,18 @@ st.markdown(
         background-color: rgba(15, 23, 42, 0.8) !important;
     }}
 
-    /* Warna ikon silang (X) dan panah dropdown (chevron) di multiselect */
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] svg {{
         fill: #ffffff !important; 
         color: #ffffff !important;
     }}
 
-    /* Warna teks saat mengetik di dalam kotak multiselect */
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] input {{
         color: #ffffff !important;
     }}
     
-    /* Warna teks pada tag yang terpilih */
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] span {{
         color: #ffffff !important;
     }}
-    /* ========================================================================= */
 
     /* Styling tombol Clear Cache agar konsisten */
     [data-testid="stSidebar"] .stButton > button {{
@@ -538,7 +532,24 @@ else:
         st.info("Belum ada pantai favorit disimpan.")
       else:
         for w_item in st.session_state.wishlist:
-          st.markdown(f"• {w_item}")
+          # Mencari link Google Maps berdasarkan Nama Pantai di dataframe
+          match_row = df[df["Nama Pantai"] == w_item]
+          if (
+              not match_row.empty
+              and pd.notna(match_row.iloc[0].get("Link Google Maps"))
+              and match_row.iloc[0].get("Link Google Maps") != "#"
+          ):
+            maps_url = match_row.iloc[0]["Link Google Maps"]
+            st.markdown(
+                f'• <a href="{maps_url}" target="_blank"'
+                ' style="text-decoration: none; color: #38bdf8;'
+                f' font-weight: 600;">{w_item} ↗</a>',
+                unsafe_allow_html=True,
+            )
+          else:
+            st.markdown(f"• {w_item}")
+
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Kosongkan Wishlist", use_container_width=True):
           st.session_state.wishlist = []
           update_wishlist_url()

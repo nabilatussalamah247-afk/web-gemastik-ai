@@ -955,7 +955,7 @@ else:
     # FITUR TAMBAHAN BARU: Eksplorasi Pantai Dominan Berdasarkan Provinsi & Predikat
     # =========================================================================
     st.markdown("---")
-    st.markdown("### 📊 Direktori Sebaran Kualitas Ulasan Pantai per Provinsi")
+    st.markdown("###  Direktori Sebaran Kualitas Ulasan Pantai per Provinsi")
     st.caption(
         "Ingin tahu pantai mana saja di seluruh Indonesia yang ulasannya"
         " mendominasi kategori 'Bagus' atau 'Biasa'? Pilih kategori dan"

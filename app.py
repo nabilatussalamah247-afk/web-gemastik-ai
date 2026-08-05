@@ -87,7 +87,7 @@ st.markdown(
 
     html, body, [class*="css"] {{ font-family: 'Poppins', sans-serif; }}
 
-    /* ---------- PERUBAHAN UTAMA: Background Gradasi Laut & Siluet Halus ---------- */
+    /* Background Gradasi Laut & Siluet Halus */
     .main {{
         background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(30, 58, 138, 0.85)), url("data:image/png;base64,{img_splash_b64}");
         background-size: cover;
@@ -108,7 +108,7 @@ st.markdown(
         padding-right: 2rem;
     }}
 
-    /* ---------- Styling Sidebar dengan Background Blur & Font Poppins ---------- */
+    /* Styling Sidebar dengan Background Blur & Font Poppins */
     [data-testid="stSidebar"] {{
         background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url("data:image/jpeg;base64,{img_sidebar_b64}");
         background-size: cover;
@@ -116,19 +116,16 @@ st.markdown(
         color: #ffffff;
     }}
     
-    /* Memastikan semua label teks standar di sidebar warna putih */
     [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
         color: #ffffff !important;
         font-weight: 600 !important;
     }}
 
-    /* Hapus background bawaan Streamlit yang bikin kotak expander jadi putih luar-dalam */
     [data-testid="stSidebar"] [data-testid="stExpander"] {{
         background-color: transparent !important;
         border: none !important;
     }}
     
-    /* Paksa header/tombol expander menjadi warna gelap transparan */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary {{
         background-color: rgba(15, 23, 42, 0.7) !important; 
         color: #ffffff !important;
@@ -137,14 +134,12 @@ st.markdown(
         padding: 10px !important;
     }}
     
-    /* Saat expander disorot (hover), ubah jadi lebih gelap */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:hover,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:focus {{
         background-color: rgba(15, 23, 42, 0.95) !important;
         border-color: #ffffff !important;
     }}
 
-    /* Pastikan teks di dalam tombol expander benar-benar putih */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary p,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary span,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary svg {{
@@ -153,7 +148,7 @@ st.markdown(
         font-weight: 700 !important;
     }}
 
-    /* Memaksa kotak background Multiselect menjadi gelap */
+    /* Kotak background Multiselect menjadi gelap */
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] > div:nth-child(1) {{
         background-color: rgba(15, 23, 42, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -178,7 +173,6 @@ st.markdown(
         color: #ffffff !important;
     }}
 
-    /* Styling tombol Clear Cache agar konsisten */
     [data-testid="stSidebar"] .stButton > button {{
         background-color: rgba(2, 132, 199, 0.85) !important;
         color: #ffffff !important;
@@ -379,14 +373,12 @@ else:
     else:
       df["Jumlah Ulasan"] = 100
 
-    # --- DROP / HAPUS PANTAI TERTENTU DARI APLIKASI ---
     pantai_yang_dihapus = [
         "Melasti Beach",
         "Pantai Melasti",
         "Pantai Baru",
     ]
     df = df[~df["Nama Pantai"].isin(pantai_yang_dihapus)]
-    # --------------------------------------------------
 
     def map_provinsi(val):
       val_str = str(val).strip()
@@ -943,13 +935,13 @@ else:
 
           pred_encoded = model.predict(X_new)[0]
           pred_label = le_target.inverse_transform([pred_encoded])[0]
-background_lower = str(pred_label).strip().lower()
+          pred_lower = str(pred_label).strip().lower()
 
           st.markdown(
               f"""
                         <div class="result-box">
                             <p style="margin:0 0 8px 0; font-size:13px; color:#166534; font-weight:600;">HASIL PREDIKSI</p>
-                            <span class="badge {badge_class(background_lower)}" style="font-size:18px; padding:10px 22px;">
+                            <span class="badge {badge_class(pred_lower)}" style="font-size:18px; padding:10px 22px;">
                                 {str(pred_label).title()}
                             </span>
                         </div>

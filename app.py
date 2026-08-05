@@ -951,6 +951,74 @@ else:
         except Exception as e:
           st.error(f"Terjadi kesalahan saat memprediksi: {e}")
 
+    # =========================================================================
+    # FITUR TAMBAHAN BARU: Eksplorasi Pantai Dominan Berdasarkan Provinsi & Predikat
+    # =========================================================================
+    st.markdown("---")
+    st.markdown("### 📊 Direktori Sebaran Kualitas Ulasan Pantai per Provinsi")
+    st.caption(
+        "Ingin tahu pantai mana saja di seluruh Indonesia yang ulasannya"
+        " mendominasi kategori 'Bagus' atau 'Biasa'? Pilih kategori dan"
+        " provinsi di bawah ini."
+    )
+
+    col_filter_p1, col_filter_p2 = st.columns(2)
+    with col_filter_p1:
+      pilih_predikat_direktori = st.selectbox(
+          "Pilih Predikat Ulasan:",
+          options=["Bagus", "Biasa"],
+          key="dir_predikat",
+      )
+    with col_filter_p2:
+      semua_prov_dir = ["Semua Provinsi"] + sorted(df["Provinsi"].unique().tolist())
+      pilih_provinsi_direktori = st.selectbox(
+          "Pilih Provinsi:", options=semua_prov_dir, key="dir_provinsi"
+      )
+
+    # Filter DataFrame sesuai pilihan
+    df_dir = df[df["Predikat"] == pilih_predikat_direktori.lower()].copy()
+    if pilih_provinsi_direktori != "Semua Provinsi":
+      df_dir = df_dir[df_dir["Provinsi"] == pilih_provinsi_direktori]
+
+    df_dir = df_dir.sort_values(by="Rating Angka", ascending=False).reset_index(
+        drop=True
+    )
+
+    st.markdown(
+        f"Ditemukan **{len(df_dir)} pantai** dengan predikat **{pilih_predikat_direktori}** di **{pilih_provinsi_direktori}**:"
+    )
+
+    if len(df_dir) > 0:
+      # Tampilkan sebagai dataframe interaktif dengan link Google Maps yang aktif
+      tampil_dir = df_dir[
+          [
+              "Nama Pantai",
+              "Provinsi",
+              "Rating Angka",
+              "Jumlah Ulasan",
+              "Link Google Maps",
+          ]
+      ].copy()
+      tampil_dir.rename(
+          columns={"Link Google Maps": "Tautan Maps"}, inplace=True
+      )
+
+      st.dataframe(
+          tampil_dir,
+          use_container_width=True,
+          height=300,
+          column_config={
+              "Tautan Maps": st.column_config.LinkColumn(
+                  "Buka Google Maps", display_text="Buka Lokasi ↗"
+              )
+          },
+      )
+    else:
+      st.warning(
+          "Tidak ditemukan data pantai yang sesuai dengan kombinasi filter"
+          " tersebut."
+      )
+
   with tab_top5:
     st.markdown("### Top 5 Pantai Berdasarkan Jumlah Ulasan Terbanyak")
     st.caption(

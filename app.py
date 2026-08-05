@@ -78,7 +78,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Perbaikan Expander Putih di Sidebar)
+# 4. PENGATURAN STYLING KUSTOM CSS (Perbaikan Expander & Kotak Multiselect Sidebar)
 # =============================================================================
 st.markdown(
     f"""
@@ -110,7 +110,7 @@ st.markdown(
         border: none !important;
     }}
     
-    /* FIX: Paksa header/tombol expander (Filter Peta Interaktif, dll) menjadi warna gelap transparan */
+    /* FIX: Paksa header/tombol expander menjadi warna gelap transparan */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary {{
         background-color: rgba(15, 23, 42, 0.7) !important; 
         color: #ffffff !important;
@@ -119,7 +119,7 @@ st.markdown(
         padding: 10px !important;
     }}
     
-    /* FIX: Saat expander disorot (hover), ubah jadi lebih gelap, bukan putih */
+    /* FIX: Saat expander disorot (hover), ubah jadi lebih gelap */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:hover,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:focus {{
         background-color: rgba(15, 23, 42, 0.95) !important;
@@ -134,6 +134,30 @@ st.markdown(
         fill: #ffffff !important;
         font-weight: 700 !important;
     }}
+
+    /* ========================================================================= */
+    /* FIX BARU: Kotak Multiselect (Provinsi & Predikat) agar Gelap & Teks Putih */
+    /* ========================================================================= */
+    [data-testid="stSidebar"] div[data-baseweb="select"] > div {{
+        background-color: rgba(15, 23, 42, 0.6) !important; /* Latar gelap transparan */
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 8px !important;
+    }}
+    
+    [data-testid="stSidebar"] div[data-baseweb="select"] > div:hover {{
+        border-color: #ffffff !important;
+    }}
+
+    /* Warna ikon silang (X) dan panah dropdown (chevron) di multiselect */
+    [data-testid="stSidebar"] div[data-baseweb="select"] svg {{
+        fill: #ffffff !important; 
+    }}
+
+    /* Warna teks saat mengetik di dalam kotak multiselect */
+    [data-testid="stSidebar"] div[data-baseweb="select"] input {{
+        color: #ffffff !important;
+    }}
+    /* ========================================================================= */
 
     /* Styling tombol Clear Cache agar konsisten */
     [data-testid="stSidebar"] .stButton > button {{

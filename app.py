@@ -78,7 +78,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Termasuk Perbaikan Tombol Sidebar)
+# 4. PENGATURAN STYLING KUSTOM CSS (Termasuk Perbaikan Hover Sidebar)
 # =============================================================================
 st.markdown(
     f"""
@@ -103,17 +103,27 @@ st.markdown(
     }}
     
     [data-testid="stSidebar"] [data-testid="stExpander"] {{
-        background-color: rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
         border-radius: 10px !important;
     }}
-    [data-testid="stSidebar"] details summary p {{
+    
+    /* FIX: Hentikan background expander berubah jadi putih terang saat di-hover */
+    [data-testid="stSidebar"] details summary:hover,
+    [data-testid="stSidebar"] details summary:focus,
+    [data-testid="stSidebar"] details summary:active {{
+        background-color: rgba(255, 255, 255, 0.15) !important; /* Tetap gelap/transparan elegan */
+    }}
+    
+    /* Pastikan warna teks di header expander selalu putih */
+    [data-testid="stSidebar"] details summary, 
+    [data-testid="stSidebar"] details summary * {{
         color: #ffffff !important;
         font-weight: 700 !important;
     }}
 
-    /* ---------- Perbaikan Tombol di Sidebar agar Terlihat Jelas ---------- */
-    [data-testid="stSidebar"] .stButton button {{
+    /* FIX: Pastikan semua tombol di sidebar tidak ada yang "menghilang" teksnya */
+    [data-testid="stSidebar"] .stButton > button {{
         background-color: rgba(2, 132, 199, 0.85) !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -121,10 +131,15 @@ st.markdown(
         font-weight: 600 !important;
         transition: all 0.3s ease;
     }}
-    [data-testid="stSidebar"] .stButton button:hover {{
+    [data-testid="stSidebar"] .stButton > button:hover,
+    [data-testid="stSidebar"] .stButton > button:focus {{
         background-color: rgba(2, 132, 199, 1) !important;
+        color: #ffffff !important;
         border-color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    }}
+    [data-testid="stSidebar"] .stButton > button * {{
+        color: #ffffff !important;
     }}
 
     .sidebar-title {{

@@ -78,7 +78,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS (Termasuk Perbaikan Hover Sidebar)
+# 4. PENGATURAN STYLING KUSTOM CSS (Perbaikan Expander Putih di Sidebar)
 # =============================================================================
 st.markdown(
     f"""
@@ -97,32 +97,45 @@ st.markdown(
         background-position: center;
         color: #ffffff;
     }}
+    
+    /* Memastikan semua label teks standar di sidebar warna putih */
     [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
         color: #ffffff !important;
         font-weight: 600 !important;
     }}
-    
+
+    /* FIX: Hapus background bawaan Streamlit yang bikin kotak expander jadi putih luar-dalam */
     [data-testid="stSidebar"] [data-testid="stExpander"] {{
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 10px !important;
+        background-color: transparent !important;
+        border: none !important;
     }}
     
-    /* FIX: Hentikan background expander berubah jadi putih terang saat di-hover */
-    [data-testid="stSidebar"] details summary:hover,
-    [data-testid="stSidebar"] details summary:focus,
-    [data-testid="stSidebar"] details summary:active {{
-        background-color: rgba(255, 255, 255, 0.15) !important; /* Tetap gelap/transparan elegan */
-    }}
-    
-    /* Pastikan warna teks di header expander selalu putih */
-    [data-testid="stSidebar"] details summary, 
-    [data-testid="stSidebar"] details summary * {{
+    /* FIX: Paksa header/tombol expander (Filter Peta Interaktif, dll) menjadi warna gelap transparan */
+    [data-testid="stSidebar"] [data-testid="stExpander"] details summary {{
+        background-color: rgba(15, 23, 42, 0.7) !important; 
         color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+    }}
+    
+    /* FIX: Saat expander disorot (hover), ubah jadi lebih gelap, bukan putih */
+    [data-testid="stSidebar"] [data-testid="stExpander"] details summary:hover,
+    [data-testid="stSidebar"] [data-testid="stExpander"] details summary:focus {{
+        background-color: rgba(15, 23, 42, 0.95) !important;
+        border-color: #ffffff !important;
+    }}
+
+    /* FIX: Pastikan teks di dalam tombol expander benar-benar putih */
+    [data-testid="stSidebar"] [data-testid="stExpander"] details summary p,
+    [data-testid="stSidebar"] [data-testid="stExpander"] details summary span,
+    [data-testid="stSidebar"] [data-testid="stExpander"] details summary svg {{
+        color: #ffffff !important;
+        fill: #ffffff !important;
         font-weight: 700 !important;
     }}
 
-    /* FIX: Pastikan semua tombol di sidebar tidak ada yang "menghilang" teksnya */
+    /* Styling tombol Clear Cache agar konsisten */
     [data-testid="stSidebar"] .stButton > button {{
         background-color: rgba(2, 132, 199, 0.85) !important;
         color: #ffffff !important;
@@ -131,10 +144,8 @@ st.markdown(
         font-weight: 600 !important;
         transition: all 0.3s ease;
     }}
-    [data-testid="stSidebar"] .stButton > button:hover,
-    [data-testid="stSidebar"] .stButton > button:focus {{
+    [data-testid="stSidebar"] .stButton > button:hover {{
         background-color: rgba(2, 132, 199, 1) !important;
-        color: #ffffff !important;
         border-color: #ffffff !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     }}

@@ -104,13 +104,13 @@ st.markdown(
         font-weight: 600 !important;
     }}
 
-    /* FIX: Hapus background bawaan Streamlit yang bikin kotak expander jadi putih luar-dalam */
+    /* Hapus background bawaan Streamlit yang bikin kotak expander jadi putih luar-dalam */
     [data-testid="stSidebar"] [data-testid="stExpander"] {{
         background-color: transparent !important;
         border: none !important;
     }}
     
-    /* FIX: Paksa header/tombol expander menjadi warna gelap transparan */
+    /* Paksa header/tombol expander menjadi warna gelap transparan */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary {{
         background-color: rgba(15, 23, 42, 0.7) !important; 
         color: #ffffff !important;
@@ -119,14 +119,14 @@ st.markdown(
         padding: 10px !important;
     }}
     
-    /* FIX: Saat expander disorot (hover), ubah jadi lebih gelap */
+    /* Saat expander disorot (hover), ubah jadi lebih gelap */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:hover,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:focus {{
         background-color: rgba(15, 23, 42, 0.95) !important;
         border-color: #ffffff !important;
     }}
 
-    /* FIX: Pastikan teks di dalam tombol expander benar-benar putih */
+    /* Pastikan teks di dalam tombol expander benar-benar putih */
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary p,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary span,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary svg {{
@@ -136,25 +136,32 @@ st.markdown(
     }}
 
     /* ========================================================================= */
-    /* FIX BARU: Kotak Multiselect (Provinsi & Predikat) agar Gelap & Teks Putih */
+    /* FIX EKSTREM: Memaksa kotak background Multiselect menjadi gelap */
     /* ========================================================================= */
-    [data-testid="stSidebar"] div[data-baseweb="select"] > div {{
-        background-color: rgba(15, 23, 42, 0.6) !important; /* Latar gelap transparan */
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] > div:nth-child(1) {{
+        background-color: rgba(15, 23, 42, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 8px !important;
     }}
     
-    [data-testid="stSidebar"] div[data-baseweb="select"] > div:hover {{
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] > div:nth-child(1):hover {{
         border-color: #ffffff !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
     }}
 
     /* Warna ikon silang (X) dan panah dropdown (chevron) di multiselect */
-    [data-testid="stSidebar"] div[data-baseweb="select"] svg {{
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] svg {{
         fill: #ffffff !important; 
+        color: #ffffff !important;
     }}
 
     /* Warna teks saat mengetik di dalam kotak multiselect */
-    [data-testid="stSidebar"] div[data-baseweb="select"] input {{
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] input {{
+        color: #ffffff !important;
+    }}
+    
+    /* Warna teks pada tag yang terpilih */
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] span {{
         color: #ffffff !important;
     }}
     /* ========================================================================= */

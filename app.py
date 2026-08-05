@@ -24,6 +24,7 @@ st.set_page_config(
     page_title=(
         "BeachFinder Indonesia — Advanced Data Mining & ML Tourism Dashboard"
     ),
+    page_icon="🏖️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -77,7 +78,7 @@ img_sidebar_b64 = get_image_base64("2.jpg")
 img_wave_b64 = get_image_base64("3.jpg")
 
 # =============================================================================
-# 4. PENGATURAN STYLING KUSTOM CSS
+# 4. PENGATURAN STYLING KUSTOM CSS (Termasuk Perbaikan Tombol Sidebar)
 # =============================================================================
 st.markdown(
     f"""
@@ -109,6 +110,21 @@ st.markdown(
     [data-testid="stSidebar"] details summary p {{
         color: #ffffff !important;
         font-weight: 700 !important;
+    }}
+
+    /* ---------- Perbaikan Tombol di Sidebar agar Terlihat Jelas ---------- */
+    [data-testid="stSidebar"] .stButton button {{
+        background-color: rgba(2, 132, 199, 0.85) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease;
+    }}
+    [data-testid="stSidebar"] .stButton button:hover {{
+        background-color: rgba(2, 132, 199, 1) !important;
+        border-color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }}
 
     .sidebar-title {{
@@ -423,7 +439,7 @@ else:
     st.caption("Eksplorasi & prediksi kualitas pantai di Indonesia")
     st.markdown("---")
 
-    if st.button(" Clear Cache & Refresh Data", use_container_width=True):
+    if st.button("🧹 Clear Cache & Refresh Data", use_container_width=True):
       st.cache_data.clear()
       st.success("Cache dibersihkan! Memuat ulang...")
       st.rerun()
@@ -882,7 +898,7 @@ else:
 
       if len(df_top5) > 0:
         st.markdown(
-            f"#### Top 5 Destinasi Populer di Provinsi {selected_prov_top5}"
+            f"#### 🏆 Top 5 Destinasi Populer di Provinsi {selected_prov_top5}"
         )
 
         chart = (
@@ -930,7 +946,7 @@ else:
         )
     else:
       st.info(
-          " Silakan pilih salah satu provinsi di atas untuk menampilkan"
+          "👆 Silakan pilih salah satu provinsi di atas untuk menampilkan"
           " grafik Top 5 pantai."
       )
 

@@ -502,6 +502,20 @@ else:
   df = load_data()
   model_bundle = load_model_artifacts()
 
+  # Label pencarian dibuat di sini (bukan di dalam tab_peta) supaya sudah
+  # tersedia untuk sidebar (yang menampilkan wishlist) maupun semua tab —
+  # sidebar dijalankan Streamlit lebih dulu daripada isi tab mana pun.
+  nama_duplikat = set(
+      df.loc[df.duplicated("Nama Pantai", keep=False), "Nama Pantai"]
+  )
+
+  def label_pencarian(row):
+    if row["Nama Pantai"] in nama_duplikat:
+      return f"{row['Nama Pantai']} ({row['Provinsi']})"
+    return row["Nama Pantai"]
+
+  df["_label_pencarian"] = df.apply(label_pencarian, axis=1)
+
   # =============================================================================
   # 7. SIDEBAR KONTROL FILTER PETA & STATISTIK WISHLIST
   # =============================================================================
@@ -655,22 +669,6 @@ else:
         "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
         " rating, predikat, ringkasan ulasan NLP, dan simpan ke favorit."
     )
-
-    # Sejumlah nama pantai muncul lebih dari sekali di provinsi berbeda
-    # (mis. "Marina Beach" di Jawa Tengah dan Kepulauan Riau). Supaya
-    # pencarian & wishlist tidak salah ambil baris, nama yang duplikat
-    # diberi label tambahan "(Provinsi)"; nama yang unik tetap ditampilkan
-    # apa adanya supaya wishlist/URL lama tetap kompatibel.
-    nama_duplikat = set(
-        df.loc[df.duplicated("Nama Pantai", keep=False), "Nama Pantai"]
-    )
-
-    def label_pencarian(row):
-      if row["Nama Pantai"] in nama_duplikat:
-        return f"{row['Nama Pantai']} ({row['Provinsi']})"
-      return row["Nama Pantai"]
-
-    df["_label_pencarian"] = df.apply(label_pencarian, axis=1)
 
     list_nama_pantai = sorted(df["_label_pencarian"].unique().tolist())
     pilihan_pencarian = st.selectbox(

@@ -36,16 +36,24 @@ if "show_splash" not in st.session_state:
   st.session_state.show_splash = True
 
 query_params = st.query_params
+# Pemisah wishlist di URL memakai "|" (bukan ",") karena 37 nama pantai di
+# dataset mengandung tanda koma (mis. "Pantai Tebing Karang, Labuang"),
+# sehingga pemisahan berbasis koma akan memecah nama pantai itu jadi dua
+# entri yang salah. "|" tidak muncul di nama pantai manapun.
+WISHLIST_SEP = "|"
+
 if "wishlist" in query_params:
   val_param = query_params["wishlist"]
   if isinstance(val_param, list):
-    combined = ",".join(val_param)
+    combined = WISHLIST_SEP.join(val_param)
     st.session_state.wishlist = [
-        item.strip() for item in combined.split(",") if item.strip()
+        item.strip() for item in combined.split(WISHLIST_SEP) if item.strip()
     ]
   else:
     st.session_state.wishlist = [
-        item.strip() for item in str(val_param).split(",") if item.strip()
+        item.strip()
+        for item in str(val_param).split(WISHLIST_SEP)
+        if item.strip()
     ]
 else:
   if "wishlist" not in st.session_state:
@@ -55,7 +63,7 @@ else:
 def update_wishlist_url():
   """Fungsi utilitas untuk menyinkronkan status wishlist ke URL browser secara aman."""
   if st.session_state.wishlist:
-    st.query_params["wishlist"] = ",".join(st.session_state.wishlist)
+    st.query_params["wishlist"] = WISHLIST_SEP.join(st.session_state.wishlist)
   else:
     if "wishlist" in st.query_params:
       del st.query_params["wishlist"]

@@ -10,7 +10,7 @@ Pastikan semua file berikut ada di **folder yang sama** (root repo):
 
 ```
 ├── app.py                      # Aplikasi utama Streamlit
-├── dataset_pantai_clean.csv    # Dataset pantai
+├── dataset_clean.csv           # Dataset pantai
 ├── model_xgboost_wisata.pkl    # Model XGBoost hasil training (dari notebook kamu)
 ├── label_encoder_target.pkl    # Encoder untuk kolom Predikat
 ├── le_provinsi.pkl             # Encoder untuk kolom Provinsi
@@ -46,8 +46,8 @@ Pastikan semua file berikut ada di **folder yang sama** (root repo):
 ## Fitur
 
 - **🗺️ Peta Interaktif** — Peta Leaflet (via Folium) dengan marker ter-cluster untuk performa,
-  warna marker sesuai predikat (hijau = Sangat Bagus, biru = Bagus, merah = Biasa), dan popup
-  berisi nama pantai, provinsi, rating berbintang, dan kualitas.
+  warna marker sesuai predikat (biru = Bagus, merah = Biasa), dan popup berisi nama pantai,
+  provinsi, rating berbintang, dan kualitas.
 - **🔮 Prediksi Kualitas Pantai** — Form input Provinsi, Latitude, Longitude (tanpa Rating —
   lihat "Catatan Teknis" di bawah) yang memanggil model XGBoost untuk menaksir predikat
   kualitas sebuah lokasi pantai baru, lengkap dengan tingkat keyakinan model dan peringatan
@@ -68,28 +68,23 @@ Pastikan semua file berikut ada di **folder yang sama** (root repo):
 
 ## Catatan Teknis — Kenapa Model Tidak Pakai Rating Sebagai Fitur
 
-Di dataset asli, `Predikat` ternyata **100% deterministik terhadap `Rating Angka`**
-(tidak ada rentang rating yang tumpang tindih antar kelas: Biasa = 1.0, Cukup Bagus
-2.5–3.0, Bagus 3.3–4.0, Sangat Bagus 4.1–5.0). Artinya kalau Rating dimasukkan sebagai
-fitur prediksi, model cuma "menghafal" pemetaan rating → predikat, bukan belajar pola
-lokasi — dan itu tidak berguna untuk kasus nyata (menaksir kualitas pantai yang **belum
-punya rating sama sekali**).
+Di dataset asli, `Predikat` ternyata **100% deterministik terhadap `Rating Angka`**.
+Artinya kalau Rating dimasukkan sebagai fitur prediksi, model cuma "menghafal" pemetaan
+rating → predikat, bukan belajar pola lokasi — dan itu tidak berguna untuk kasus nyata
+(menaksir kualitas pantai yang **belum punya rating sama sekali**).
 
 Karena itu, model di project ini dilatih ulang **hanya dari `Latitude`, `Longitude`,
-dan `Provinsi`** (tanpa Rating). Kategori `Predikat` juga dikonsolidasi dari 4 menjadi
-**3 kelas** ("Cukup Bagus" digabung ke "Biasa") baik di data yang ditampilkan maupun di
-target model. Konsekuensinya:
+dan `Provinsi`** (tanpa Rating). Target klasifikasi (`label_encoder_target.pkl`) memakai
+**2 kelas: `Bagus` dan `Biasa`**.
 
-- Akurasi keseluruhan pada data uji: **88,14%** — tapi ini didominasi kelas mayoritas.
-- Recall per kelas: Sangat Bagus 97%, Bagus hanya 7%, Biasa tidak cukup data untuk
-  dievaluasi dengan andal (hanya 12 baris di seluruh dataset setelah digabung).
-- **Penyebabnya keterbatasan data**, bukan kesalahan model: ~90% dataset berlabel
-  "Sangat Bagus", jadi model condong menebak kelas itu. Ini bukan sesuatu yang bisa
-  diperbaiki lewat tuning — perlu data tambahan untuk kelas minoritas kalau ingin
-  akurasi yang lebih seimbang.
-- UI aplikasi sudah menampilkan peringatan ini secara eksplisit di tab prediksi, dan
-  memberi catatan tambahan kalau hasil prediksi jatuh ke kelas minoritas.
+<!-- TODO(Nabila): isi angka akurasi & recall per kelas yang aktual untuk model 2-kelas
+     ini (dari notebook, sebelum dipakai untuk laporan/paper GEMASTIK), supaya klaim di
+     dokumentasi ini sesuai dengan model_xgboost_wisata.pkl yang sebenarnya di-deploy. -->
 
-Kolom `Provinsi` di form prediksi hanya menampilkan provinsi yang dikenali oleh
-`le_provinsi.pkl` (hasil `LabelEncoder.classes_`), sehingga tidak akan terjadi error
+Kolom `Provinsi` di form prediksi menampilkan provinsi yang sudah dikonsolidasi (sama
+seperti yang ditampilkan di peta/tabel — mis. "Maluku", bukan "Ambon" atau "Pulau Buru"
+sebagai provinsi terpisah). `le_provinsi.pkl` sendiri dilatih pada label provinsi mentah
+sebelum konsolidasi ini diterapkan, jadi `app.py` melakukan mapping balik
+(`PROVINSI_ENCODING_PROXY`) sebelum encoding untuk provinsi hasil gabungan ("Maluku" →
+diwakili "Ambon", "Maluku Utara" → diwakili "Ternate") agar tidak terjadi error
 "unseen label" saat prediksi.

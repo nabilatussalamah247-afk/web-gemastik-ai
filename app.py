@@ -333,6 +333,18 @@ else:
   }
   PREDIKAT_ORDER = ["Bagus", "Biasa"]
 
+  # Mapping balik: provinsi hasil konsolidasi (dipakai di seluruh tampilan
+  # aplikasi) -> label provinsi mentah yang dikenali oleh le_provinsi.pkl.
+  # le_provinsi.pkl dilatih sebelum konsolidasi provinsi diterapkan, sehingga
+  # "Maluku" dan "Maluku Utara" tidak ada di antara kelasnya. "Maluku" berasal
+  # dari gabungan 4 label mentah (Ambon, Pulau Buru, Pulau Seram, Pulau Wetar);
+  # "Ambon" dipakai sebagai representasi karena cakupannya paling relevan
+  # untuk wilayah Maluku secara umum.
+  PROVINSI_ENCODING_PROXY = {
+      "Maluku": "Ambon",
+      "Maluku Utara": "Ternate",
+  }
+
   DATA_PATH = "dataset_clean.csv"
   MODEL_PATH = "model_xgboost_wisata.pkl"
   LE_TARGET_PATH = "label_encoder_target.pkl"
@@ -542,7 +554,15 @@ else:
         st.info("Belum ada pantai favorit disimpan.")
       else:
         for w_item in st.session_state.wishlist:
-          match_row = df[df["Nama Pantai"] == w_item]
+          # Coba cocokkan dengan label pencarian dulu (format baru, sudah
+          # disambiguasi provinsi); kalau tidak ketemu, fallback ke nama
+          # polos untuk kompatibilitas dengan link wishlist lama.
+          match_row = df[df["_label_pencarian"] == w_item]
+          if match_row.empty:
+            match_row = df[df["Nama Pantai"] == w_item]
+          display_name = (
+              match_row.iloc[0]["Nama Pantai"] if not match_row.empty else w_item
+          )
           if (
               not match_row.empty
               and pd.notna(match_row.iloc[0].get("Link Google Maps"))
@@ -552,11 +572,11 @@ else:
             st.markdown(
                 f'• <a href="{maps_url}" target="_blank"'
                 ' style="text-decoration: none; color: #38bdf8;'
-                f' font-weight: 600;">{w_item} ↗</a>',
+                f' font-weight: 600;">{display_name} ↗</a>',
                 unsafe_allow_html=True,
             )
           else:
-            st.markdown(f"• {w_item}")
+            st.markdown(f"• {display_name}")
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Kosongkan Wishlist", use_container_width=True):
@@ -636,14 +656,30 @@ else:
         " rating, predikat, ringkasan ulasan NLP, dan simpan ke favorit."
     )
 
-    list_nama_pantai = sorted(df["Nama Pantai"].unique().tolist())
+    # Sejumlah nama pantai muncul lebih dari sekali di provinsi berbeda
+    # (mis. "Marina Beach" di Jawa Tengah dan Kepulauan Riau). Supaya
+    # pencarian & wishlist tidak salah ambil baris, nama yang duplikat
+    # diberi label tambahan "(Provinsi)"; nama yang unik tetap ditampilkan
+    # apa adanya supaya wishlist/URL lama tetap kompatibel.
+    nama_duplikat = set(
+        df.loc[df.duplicated("Nama Pantai", keep=False), "Nama Pantai"]
+    )
+
+    def label_pencarian(row):
+      if row["Nama Pantai"] in nama_duplikat:
+        return f"{row['Nama Pantai']} ({row['Provinsi']})"
+      return row["Nama Pantai"]
+
+    df["_label_pencarian"] = df.apply(label_pencarian, axis=1)
+
+    list_nama_pantai = sorted(df["_label_pencarian"].unique().tolist())
     pilihan_pencarian = st.selectbox(
         "Pilih atau ketik nama pantai:",
         options=["-- Pilih / Cari Pantai --"] + list_nama_pantai,
     )
 
     if pilihan_pencarian != "-- Pilih / Cari Pantai --":
-      data_pilih = df[df["Nama Pantai"] == pilihan_pencarian].iloc[0]
+      data_pilih = df[df["_label_pencarian"] == pilihan_pencarian].iloc[0]
       p_pred = data_pilih["Predikat"].title()
       p_stars = stars_from_rating(data_pilih["Rating Angka"])
       p_link = (
@@ -696,10 +732,14 @@ else:
           unsafe_allow_html=True,
       )
 
-      is_in_wishlist = data_pilih["Nama Pantai"] in st.session_state.wishlist
+      # Disimpan sebagai label pencarian (bukan Nama Pantai polos) supaya
+      # pantai dengan nama kembar di provinsi lain tidak salah tertaut saat
+      # dibuka kembali dari wishlist/URL.
+      wishlist_key = data_pilih["_label_pencarian"]
+      is_in_wishlist = wishlist_key in st.session_state.wishlist
       if not is_in_wishlist:
         if st.button("Simpan ke Pantai Favorit Saya"):
-          st.session_state.wishlist.append(data_pilih["Nama Pantai"])
+          st.session_state.wishlist.append(wishlist_key)
           update_wishlist_url()
           st.success(
               f"Berhasil menambahkan **{data_pilih['Nama Pantai']}** ke"
@@ -708,7 +748,7 @@ else:
           st.rerun()
       else:
         if st.button("Hapus dari Pantai Favorit Saya"):
-          st.session_state.wishlist.remove(data_pilih["Nama Pantai"])
+          st.session_state.wishlist.remove(wishlist_key)
           update_wishlist_url()
           st.warning(
               f"Menghapus **{data_pilih['Nama Pantai']}** dari daftar favorit."
@@ -728,19 +768,24 @@ else:
           "📍 Deteksi Lokasi Saya", use_container_width=True
       )
 
-    u_lat, u_lon = None, None
-
+    # Lokasi disimpan di session_state supaya hasil "pantai terdekat" tidak
+    # hilang saat ada rerun lain (mis. menambah wishlist, ganti filter).
+    # Sebelumnya nilai ini cuma dibaca sekali langsung dari klik tombol, jadi
+    # hilang begitu Streamlit rerun karena interaksi apa pun.
     if deteksi_lokasi:
       user_loc = streamlit_geolocation()
       if user_loc and user_loc.get("latitude") and user_loc.get("longitude"):
-        u_lat = user_loc["latitude"]
-        u_lon = user_loc["longitude"]
+        st.session_state.u_lat = user_loc["latitude"]
+        st.session_state.u_lon = user_loc["longitude"]
       else:
-        u_lat, u_lon = -5.4297, 105.2615
+        st.session_state.u_lat, st.session_state.u_lon = -5.4297, 105.2615
         st.info(
             "Menggunakan lokasi estimasi default (Bandar Lampung) karena"
             " pembatasan browser cloud."
         )
+
+    u_lat = st.session_state.get("u_lat")
+    u_lon = st.session_state.get("u_lon")
 
     if u_lat and u_lon:
       st.success(f"Lokasi aktif: ({u_lat:.4f}, {u_lon:.4f})")
@@ -877,8 +922,13 @@ else:
       with st.form("form_prediksi"):
         c1, c2, c3 = st.columns(3)
         with c1:
+          # Opsi provinsi diambil dari data yang sudah dikonsolidasi (df),
+          # bukan langsung dari le_provinsi.classes_, supaya daftar ini
+          # konsisten dengan provinsi yang ditampilkan di peta, tabel, dan
+          # filter lain di aplikasi (mis. "Maluku" muncul, bukan "Ambon"
+          # atau "Pulau Buru" sebagai provinsi terpisah).
           provinsi_input = st.selectbox(
-              "Provinsi", options=sorted(le_provinsi.classes_.tolist())
+              "Provinsi", options=sorted(df["Provinsi"].unique().tolist())
           )
 
         df_prov = df[df["Provinsi"] == provinsi_input]
@@ -908,7 +958,10 @@ else:
 
       if submitted:
         try:
-          provinsi_encoded = le_provinsi.transform([provinsi_input])[0]
+          provinsi_for_encoding = PROVINSI_ENCODING_PROXY.get(
+              provinsi_input, provinsi_input
+          )
+          provinsi_encoded = le_provinsi.transform([provinsi_for_encoding])[0]
           expected_features = (
               model.get_booster().feature_names
               if hasattr(model, "get_booster")

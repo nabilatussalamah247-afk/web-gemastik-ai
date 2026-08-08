@@ -195,11 +195,20 @@ st.markdown(
         color: #ffffff !important;
     }}
 
-    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] {{
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"],
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] div,
+    [data-testid="stSidebar"] .stMultiSelect span[data-baseweb="tag"] > span {{
         background-color: var(--teal-500) !important;
+        transition: background-color 0.2s ease;
+    }}
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"]:hover {{
+        background-color: var(--teal-700) !important;
     }}
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] span {{
         color: #ffffff !important;
+    }}
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] svg {{
+        fill: #ffffff !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button {{
@@ -361,8 +370,10 @@ st.markdown(
     .badge-teal {{ background: linear-gradient(135deg, var(--teal-500), var(--teal-700)); }}
     .badge-coral {{ background: linear-gradient(135deg, var(--coral-500), var(--coral-600)); }}
     .result-box {{ background: #f1fbf5; border: 1px solid #bfead9; border-radius: 16px; padding: 20px; text-align: center; }}
-    .search-result-box {{ background: #ffffff; border: 1px solid var(--sand-100); border-radius: 16px; padding: 20px; box-shadow: 0 6px 18px rgba(6, 46, 44, 0.06); margin-bottom: 20px; }}
-    .explain-card {{ background: var(--sand-100); border: 1px solid #ecdfc4; border-left: 4px solid var(--teal-500); border-radius: 12px; padding: 18px; margin-bottom: 15px; }}
+    .search-result-box {{ background: #ffffff; border: 1px solid var(--sand-100); border-radius: 16px; padding: 20px; box-shadow: 0 6px 18px rgba(6, 46, 44, 0.06); margin-bottom: 20px; transition: box-shadow 0.25s ease; }}
+    .search-result-box:hover {{ box-shadow: 0 12px 28px rgba(15, 155, 142, 0.14); }}
+    .explain-card {{ background: var(--sand-100); border: 1px solid #ecdfc4; border-left: 4px solid var(--teal-500); border-radius: 12px; padding: 18px; margin-bottom: 15px; transition: border-left-color 0.25s ease; }}
+    .explain-card:hover {{ border-left-color: var(--coral-500); }}
 
     h1, h2, h3 {{ color: var(--teal-950); font-weight: 700; }}
     p, span, label {{ font-family: 'Poppins', sans-serif; }}
@@ -380,6 +391,72 @@ st.markdown(
     .stTabs [aria-selected="true"] {{
         color: var(--teal-700) !important;
         font-weight: 800;
+    }}
+
+    /* Panel card native Streamlit (st.container(border=True)) */
+    [data-testid="stVerticalBlockBorderWrapper"] {{
+        border-radius: 16px !important;
+        border: 1px solid var(--sand-100) !important;
+        box-shadow: 0 6px 16px rgba(6, 46, 44, 0.05);
+        transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"]:hover {{
+        box-shadow: 0 10px 26px rgba(15, 155, 142, 0.12);
+    }}
+
+    [data-testid="stForm"] {{
+        background-color: #ffffff;
+        border-radius: 18px !important;
+        border: 1px solid var(--sand-100) !important;
+        border-top: 3px solid var(--teal-500) !important;
+        box-shadow: 0 8px 22px rgba(6, 46, 44, 0.07);
+        padding: 1.4rem 1.6rem !important;
+    }}
+    [data-testid="stForm"] .stFormSubmitButton > button {{
+        background: linear-gradient(135deg, var(--coral-500), var(--coral-600)) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 14px rgba(255, 107, 74, 0.3) !important;
+    }}
+    [data-testid="stForm"] .stFormSubmitButton > button:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 74, 0.4) !important;
+    }}
+
+    /* Header section dengan ikon bulat + eyebrow */
+    .section-header {{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 6px 0 4px 0;
+    }}
+    .section-header .icon-badge {{
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        box-shadow: 0 4px 12px rgba(15, 155, 142, 0.3);
+    }}
+    .section-header .section-text h3 {{
+        margin: 0 !important;
+        font-family: 'Fraunces', serif !important;
+        line-height: 1.1;
+    }}
+    .section-eyebrow {{
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: var(--teal-500);
+        margin: 0 0 2px 0;
     }}
     </style>
     """,
@@ -516,6 +593,22 @@ else:
 
   def marker_color(predikat_lower: str) -> str:
     return COLOR_MAP.get(predikat_lower, {}).get("marker", "gray")
+
+
+  def section_header(icon: str, eyebrow: str, title: str):
+    """Render header section dengan ikon bulat + eyebrow, dipakai di semua tab."""
+    st.markdown(
+        f"""
+          <div class="section-header">
+              <div class="icon-badge">{icon}</div>
+              <div class="section-text">
+                  <p class="section-eyebrow">{eyebrow}</p>
+                  <h3>{title}</h3>
+              </div>
+          </div>
+          """,
+        unsafe_allow_html=True,
+    )
 
 
   def hitung_jarak_km(lat1, lon1, lat2, lon2):
@@ -776,17 +869,18 @@ else:
   ])
 
   with tab_peta:
-    st.markdown("### Cari Destinasi Pantai")
+    section_header("🔍", "Pencarian", "Cari Destinasi Pantai")
     st.caption(
         "Ketik atau pilih nama pantai untuk langsung melihat analisis lengkap,"
         " rating, predikat, ringkasan ulasan NLP, dan simpan ke favorit."
     )
 
-    list_nama_pantai = sorted(df["_label_pencarian"].unique().tolist())
-    pilihan_pencarian = st.selectbox(
-        "Pilih atau ketik nama pantai:",
-        options=["-- Pilih / Cari Pantai --"] + list_nama_pantai,
-    )
+    with st.container(border=True):
+      list_nama_pantai = sorted(df["_label_pencarian"].unique().tolist())
+      pilihan_pencarian = st.selectbox(
+          "Pilih atau ketik nama pantai:",
+          options=["-- Pilih / Cari Pantai --"] + list_nama_pantai,
+      )
 
     if pilihan_pencarian != "-- Pilih / Cari Pantai --":
       data_pilih = df[df["_label_pencarian"] == pilihan_pencarian].iloc[0]
@@ -866,17 +960,18 @@ else:
           st.rerun()
 
     st.markdown("---")
-    st.markdown("### Cari Pantai Terdekat dari Lokasi Anda")
+    section_header("📍", "Lokasi Real-Time", "Cari Pantai Terdekat dari Lokasi Anda")
     st.caption(
         "Gunakan tombol di bawah untuk mendeteksi lokasi atau pilih koordinat"
         " otomatis."
     )
 
-    col_geo1, col_geo2 = st.columns([1, 2])
-    with col_geo1:
-      deteksi_lokasi = st.button(
-          "📍 Deteksi Lokasi Saya", use_container_width=True
-      )
+    with st.container(border=True):
+      col_geo1, col_geo2 = st.columns([1, 2])
+      with col_geo1:
+        deteksi_lokasi = st.button(
+            "📍 Deteksi Lokasi Saya", use_container_width=True
+        )
 
     # Lokasi disimpan di session_state supaya hasil "pantai terdekat" tidak
     # hilang saat ada rerun lain (mis. menambah wishlist, ganti filter).
@@ -956,7 +1051,7 @@ else:
       )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### Peta Sebaran Destinasi Pantai")
+    section_header("🗺️", "Visualisasi Spasial", "Peta Sebaran Destinasi Pantai")
 
     if len(df_filtered) == 0:
       st.warning("Tidak ada data yang cocok dengan filter saat ini.")
@@ -1018,7 +1113,7 @@ else:
       st_folium(m, use_container_width=True, height=560, returned_objects=[])
 
   with tab_prediksi:
-    st.markdown("### Prediksi Kualitas Pantai Baru")
+    section_header("🔮", "Machine Learning", "Prediksi Kualitas Pantai Baru")
     st.caption(
         "Menaksir predikat kualitas sebuah titik pantai baru berdasarkan wilayah"
         " provinsi yang dipilih."
@@ -1118,7 +1213,7 @@ else:
     # FITUR TAMBAHAN BARU: Eksplorasi Pantai Dominan Berdasarkan Provinsi & Predikat
     # =========================================================================
     st.markdown("---")
-    st.markdown("### 📊 Direktori Sebaran Kualitas Ulasan Pantai per Provinsi")
+    section_header("📊", "Direktori", "Sebaran Kualitas Ulasan Pantai per Provinsi")
     st.caption(
         "Ingin tahu pantai mana saja di seluruh Indonesia yang ulasannya"
         " mendominasi kategori 'Bagus' atau 'Biasa'? Pilih kategori dan"
@@ -1183,7 +1278,7 @@ else:
       )
 
   with tab_top5:
-    st.markdown("### Top 5 Pantai Berdasarkan Jumlah Ulasan Terbanyak")
+    section_header("🏆", "Popularitas", "Top 5 Pantai Berdasarkan Jumlah Ulasan Terbanyak")
     st.caption(
         "Pilih provinsi di bawah ini untuk melihat 5 destinasi pantai paling"
         " populer (banyak diulas pengunjung)."
@@ -1259,7 +1354,7 @@ else:
       )
 
   with tab_data:
-    st.markdown("### Tabel Data Pantai")
+    section_header("📋", "Dataset", "Tabel Data Pantai")
     tampil = df_filtered.copy()
     tampil["Predikat"] = tampil["Predikat"].str.title()
     kolom_tampil = [
@@ -1289,7 +1384,7 @@ else:
     )
 
   with tab_model:
-    st.markdown("### Transparansi & Penjelasan Model Machine Learning (XAI)")
+    section_header("🧠", "Explainable AI", "Transparansi & Penjelasan Model Machine Learning (XAI)")
     st.caption(
         "Dokumentasi teknis arsitektur model dan metodologi Data Mining yang"
         " digunakan dalam sistem BeachFinder Indonesia."

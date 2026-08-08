@@ -91,41 +91,60 @@ img_wave_b64 = get_image_base64("3.jpg")
 st.markdown(
     f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Poppins:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,600&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+    :root {{
+        --teal-950: #062e2c;
+        --teal-900: #0a3d3d;
+        --teal-700: #0e5c58;
+        --teal-500: #0f9b8e;
+        --teal-300: #6bcfc0;
+        --coral-500: #ff6b4a;
+        --coral-600: #e8532f;
+        --lime-400: #c9e265;
+        --sand-50: #fdf8f0;
+        --sand-100: #f7ecd9;
+        --ink-900: #10241f;
+        --ink-600: #3a5450;
+    }}
 
     html, body, [class*="css"] {{ font-family: 'Poppins', sans-serif; }}
+    h1, h2, h3, .hero h1, .splash-title, .sidebar-title {{
+        font-family: 'Fraunces', serif !important;
+    }}
 
-    /* Background Gradasi Laut & Siluet Halus */
+    /* Background utama: gradasi teal gelap di atas foto pantai */
     .main {{
-        background-image: linear-gradient(rgba(15, 23, 42, 0.82), rgba(30, 58, 138, 0.85)), url("data:image/png;base64,{img_splash_b64}");
+        background-image: linear-gradient(160deg, rgba(6, 46, 44, 0.90), rgba(10, 61, 61, 0.80)), url("data:image/png;base64,{img_splash_b64}");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }}
-    
-    .block-container {{ 
-        padding-top: 1.2rem; 
-        padding-bottom: 2rem; 
-        max-width: 1200px; 
-        background-color: rgba(255, 255, 255, 0.95);
-        border-radius: 24px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+
+    .block-container {{
+        padding-top: 1.2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+        background-color: var(--sand-50);
+        border-radius: 28px;
+        box-shadow: 0 25px 60px rgba(6, 46, 44, 0.45);
         margin-top: 20px;
         margin-bottom: 20px;
         padding-left: 2rem;
         padding-right: 2rem;
+        border: 1px solid rgba(255,255,255,0.08);
     }}
 
-    /* Styling Sidebar dengan Background Blur & Font Poppins */
+    /* Sidebar */
     [data-testid="stSidebar"] {{
-        background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)), url("data:image/jpeg;base64,{img_sidebar_b64}");
+        background-image: linear-gradient(180deg, rgba(6, 46, 44, 0.92), rgba(10, 61, 61, 0.96)), url("data:image/jpeg;base64,{img_sidebar_b64}");
         background-size: cover;
         background-position: center;
         color: #ffffff;
     }}
-    
+
     [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
-        color: #ffffff !important;
+        color: #f2fbf9 !important;
         font-weight: 600 !important;
     }}
 
@@ -133,19 +152,19 @@ st.markdown(
         background-color: transparent !important;
         border: none !important;
     }}
-    
+
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary {{
-        background-color: rgba(15, 23, 42, 0.7) !important; 
+        background-color: rgba(255, 255, 255, 0.06) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 10px !important;
         padding: 10px !important;
     }}
-    
+
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:hover,
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary:focus {{
-        background-color: rgba(15, 23, 42, 0.95) !important;
-        border-color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.14) !important;
+        border-color: var(--lime-400) !important;
     }}
 
     [data-testid="stSidebar"] [data-testid="stExpander"] details summary p,
@@ -156,89 +175,90 @@ st.markdown(
         font-weight: 700 !important;
     }}
 
-    /* Kotak background Multiselect menjadi gelap */
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] > div:nth-child(1) {{
-        background-color: rgba(15, 23, 42, 0.6) !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
     }}
-    
+
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] > div:nth-child(1):hover {{
-        border-color: #ffffff !important;
-        background-color: rgba(15, 23, 42, 0.8) !important;
+        border-color: var(--lime-400) !important;
+        background-color: rgba(255, 255, 255, 0.14) !important;
     }}
 
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] svg {{
-        fill: #ffffff !important; 
+        fill: #ffffff !important;
         color: #ffffff !important;
     }}
 
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="select"] input {{
         color: #ffffff !important;
     }}
-    
+
+    [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] {{
+        background-color: var(--teal-500) !important;
+    }}
     [data-testid="stSidebar"] .stMultiSelect [data-baseweb="tag"] span {{
         color: #ffffff !important;
     }}
 
     [data-testid="stSidebar"] .stButton > button {{
-        background-color: rgba(2, 132, 199, 0.85) !important;
+        background: linear-gradient(135deg, var(--coral-500), var(--coral-600)) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease;
+        border: none !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(255, 107, 74, 0.35) !important;
     }}
     [data-testid="stSidebar"] .stButton > button:hover {{
-        background-color: rgba(2, 132, 199, 1) !important;
-        border-color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 74, 0.45) !important;
     }}
     [data-testid="stSidebar"] .stButton > button * {{
         color: #ffffff !important;
     }}
 
     .sidebar-title {{
-        font-family: 'Playfair Display', serif;
         font-size: 32px;
-        font-weight: 800;
+        font-weight: 900;
         font-style: italic;
         color: #ffffff !important;
         margin-bottom: 0px;
         letter-spacing: -0.5px;
     }}
 
+    /* Splash */
     .splash-hero {{
         position: relative;
         width: 100%;
         min-height: 85vh;
-        background-image: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.75)), url("data:image/png;base64,{img_splash_b64}");
+        background-image: linear-gradient(160deg, rgba(6, 46, 44, 0.55), rgba(6, 46, 44, 0.82)), url("data:image/png;base64,{img_splash_b64}");
         background-size: cover;
         background-position: center;
-        border-radius: 24px;
+        border-radius: 28px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
         padding: 40px 20px;
-        box-shadow: 0 25px 50px rgba(15, 23, 42, 0.4);
+        box-shadow: 0 30px 60px rgba(6, 46, 44, 0.5);
         margin-top: 10px;
     }}
     .splash-title {{
-        font-family: 'Playfair Display', serif;
-        font-size: 52px;
-        font-weight: 800;
+        font-size: 56px;
+        font-weight: 900;
         font-style: italic;
         color: #ffffff;
         margin-bottom: 16px;
         letter-spacing: -1px;
-        text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        text-shadow: 0 4px 16px rgba(0,0,0,0.35);
     }}
     .splash-subtitle {{
         font-family: 'Poppins', sans-serif;
         font-size: 16px;
-        color: #e2e8f0;
+        color: #d7f2ee;
         max-width: 680px;
         margin: 0 auto 35px auto;
         line-height: 1.6;
@@ -246,17 +266,28 @@ st.markdown(
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }}
 
+    /* Hero dashboard */
     .hero {{
         position: relative;
-        background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url("data:image/png;base64,{img_splash_b64}");
+        background-image: linear-gradient(135deg, rgba(6, 46, 44, 0.88), rgba(15, 155, 142, 0.72)), url("data:image/png;base64,{img_splash_b64}");
         background-size: cover;
         background-position: center;
-        border-radius: 20px;
+        border-radius: 22px;
         padding: 38px 42px;
         color: white;
         margin-bottom: 24px;
-        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.25);
+        box-shadow: 0 16px 40px rgba(6, 46, 44, 0.35);
         overflow: hidden;
+    }}
+    .hero::after {{
+        content: "";
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 226, 101, 0.35), transparent 70%);
     }}
     .hero p {{
         font-family: 'Poppins', sans-serif !important;
@@ -268,41 +299,88 @@ st.markdown(
         line-height: 1.5 !important;
         text-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
         color: #ffffff !important;
+        position: relative;
+        z-index: 2;
     }}
 
+    /* Ticker fakta berjalan */
+    .fact-ticker {{
+        background: var(--teal-950);
+        border-radius: 999px;
+        padding: 10px 0;
+        margin-bottom: 24px;
+        overflow: hidden;
+        white-space: nowrap;
+        border: 1px solid rgba(201, 226, 101, 0.25);
+    }}
+    .fact-ticker-track {{
+        display: inline-block;
+        padding-left: 100%;
+        animation: ticker-scroll 38s linear infinite;
+        color: var(--lime-400);
+        font-weight: 600;
+        font-size: 13.5px;
+        letter-spacing: 0.2px;
+    }}
+    .fact-ticker-track span {{ margin: 0 28px; color: #eafff5; }}
+    .fact-ticker-track span::before {{ content: "✦"; color: var(--lime-400); margin-right: 8px; }}
+    @keyframes ticker-scroll {{
+        0% {{ transform: translateX(0); }}
+        100% {{ transform: translateX(-100%); }}
+    }}
+    @media (prefers-reduced-motion: reduce) {{
+        .fact-ticker-track {{ animation: none; }}
+    }}
+
+    /* Metric cards */
     .metric-card {{
         position: relative;
         background-color: #ffffff !important;
-        background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url("data:image/jpeg;base64,{img_wave_b64}");
+        background-image: linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url("data:image/jpeg;base64,{img_wave_b64}");
         background-repeat: no-repeat;
         background-position: bottom right;
         background-size: 120px auto;
-        border-radius: 16px;
+        border-radius: 18px;
         padding: 20px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        border: 1px solid var(--sand-100);
+        border-top: 3px solid var(--teal-500);
+        box-shadow: 0 6px 18px rgba(6, 46, 44, 0.06);
         text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
         overflow: hidden;
     }}
     .metric-card:hover {{
-        transform: translateY(-5px);
-        box-shadow: 0 12px 25px rgba(14, 116, 144, 0.15);
-        border-color: #0284c7;
+        transform: translateY(-6px);
+        box-shadow: 0 16px 30px rgba(15, 155, 142, 0.2);
+        border-top-color: var(--coral-500);
     }}
-    .metric-card h2 {{ margin: 0 0 4px 0; font-size: 28px; font-weight: 800; color: #0f172a; position: relative; z-index: 2; }}
-    .metric-card p {{ margin: 0; font-size: 13.5px; color: #334155; font-weight: 700; position: relative; z-index: 2; }}
+    .metric-card h2 {{ margin: 0 0 4px 0; font-size: 30px; font-weight: 800; color: var(--teal-950); position: relative; z-index: 2; font-family: 'Fraunces', serif !important; }}
+    .metric-card p {{ margin: 0; font-size: 13px; color: var(--ink-600); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; position: relative; z-index: 2; }}
 
     .badge {{ display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: white; }}
-    .badge-blue {{ background-color: #2563eb; }}
-    .badge-red {{ background-color: #dc2626; }}
-    .result-box {{ background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px; text-align: center; }}
-    .search-result-box {{ background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 20px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05); margin-bottom: 20px; }}
-    .explain-card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; }}
+    .badge-teal {{ background: linear-gradient(135deg, var(--teal-500), var(--teal-700)); }}
+    .badge-coral {{ background: linear-gradient(135deg, var(--coral-500), var(--coral-600)); }}
+    .result-box {{ background: #f1fbf5; border: 1px solid #bfead9; border-radius: 16px; padding: 20px; text-align: center; }}
+    .search-result-box {{ background: #ffffff; border: 1px solid var(--sand-100); border-radius: 16px; padding: 20px; box-shadow: 0 6px 18px rgba(6, 46, 44, 0.06); margin-bottom: 20px; }}
+    .explain-card {{ background: var(--sand-100); border: 1px solid #ecdfc4; border-left: 4px solid var(--teal-500); border-radius: 12px; padding: 18px; margin-bottom: 15px; }}
 
-    h1, h2, h3 {{ color: #0f172a; font-weight: 700; }}
+    h1, h2, h3 {{ color: var(--teal-950); font-weight: 700; }}
     p, span, label {{ font-family: 'Poppins', sans-serif; }}
     footer, #MainMenu {{ visibility: hidden; }}
+
+    /* Tombol utama non-sidebar */
+    .stButton > button {{
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        font-weight: 600;
+        color: var(--ink-600);
+    }}
+    .stTabs [aria-selected="true"] {{
+        color: var(--teal-700) !important;
+        font-weight: 800;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -336,8 +414,8 @@ else:
   # 6. PEMUATAN DATASET DAN ARTEFAK MACHINE LEARNING
   # =============================================================================
   COLOR_MAP = {
-      "bagus": {"marker": "blue", "badge": "badge-blue", "hex": "#2563eb"},
-      "biasa": {"marker": "red", "badge": "badge-red", "hex": "#dc2626"},
+      "bagus": {"marker": "cadetblue", "badge": "badge-teal", "hex": "#0f9b8e"},
+      "biasa": {"marker": "orange", "badge": "badge-coral", "hex": "#ff6b4a"},
   }
   PREDIKAT_ORDER = ["Bagus", "Biasa"]
 
@@ -632,8 +710,34 @@ else:
   st.markdown(
       """
         <div class="hero">
-            <h1 style="font-family: 'Playfair Display', serif !important; font-style: italic !important; font-weight: 800 !important; font-size: 38px !important; color: #ffffff !important; margin: 0 !important; text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;">BeachFinder Indonesia</h1>
+            <h1 style="font-family: 'Fraunces', serif !important; font-style: italic !important; font-weight: 900 !important; font-size: 40px !important; color: #ffffff !important; margin: 0 !important; text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important; position: relative; z-index: 2;">BeachFinder Indonesia</h1>
             <p>Peta interaktif destinasi pantai di seluruh Indonesia, lengkap dengan pencarian, filter, analisis teks ulasan NLP, navigasi rute perjalanan, wishlist, dan prediksi kualitas berbasis Machine Learning.</p>
+        </div>
+        """,
+      unsafe_allow_html=True,
+  )
+
+  # Ticker fakta berjalan — dihitung langsung dari dataset asli (df, bukan
+  # df_filtered), supaya isinya tetap konsisten walau pengguna sedang
+  # menyaring peta ke provinsi tertentu.
+  top_provinsi = df["Provinsi"].value_counts().idxmax()
+  top_provinsi_n = int(df["Provinsi"].value_counts().max())
+  n_provinsi = df["Provinsi"].nunique()
+  pantai_rating_5 = int((df["Rating Angka"] >= 4.8).sum())
+  ulasan_terbanyak_row = df.loc[df["Jumlah Ulasan"].idxmax()]
+  fakta_list = [
+      f"📍 {top_provinsi} adalah provinsi dengan destinasi pantai terbanyak: {top_provinsi_n} lokasi",
+      f"🌊 Data mencakup {n_provinsi} provinsi di seluruh Indonesia, dari Sabang sampai Merauke",
+      f"⭐ {pantai_rating_5} pantai punya rating hampir sempurna (≥ 4.8)",
+      f"💬 {ulasan_terbanyak_row['Nama Pantai']} punya ulasan terbanyak: {int(ulasan_terbanyak_row['Jumlah Ulasan'])} ulasan",
+      f"🤖 Prediksi kualitas pantai baru ditenagai model XGBoost dari {len(df)} data pantai nyata",
+  ]
+  st.markdown(
+      f"""
+        <div class="fact-ticker">
+            <div class="fact-ticker-track">
+                {''.join(f'<span>{f}</span>' for f in fakta_list * 2)}
+            </div>
         </div>
         """,
       unsafe_allow_html=True,
@@ -714,22 +818,22 @@ else:
       st.markdown(
           f"""
             <div class="search-result-box">
-                <h3 style="margin-top:0; color:#0f172a;">{data_pilih['Nama Pantai']}</h3>
-                <hr style="margin: 8px 0 14px 0; border:0; border-top:1px solid #e2e8f0;">
+                <h3 style="margin-top:0; color:var(--teal-950);">{data_pilih['Nama Pantai']}</h3>
+                <hr style="margin: 8px 0 14px 0; border:0; border-top:1px solid var(--sand-100);">
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 250px;">
                         <p style="margin: 4px 0;"><b>Provinsi:</b> {data_pilih['Provinsi']}</p>
                         <p style="margin: 4px 0;"><b>Rating Angka:</b> {data_pilih['Rating Angka']} {p_stars}</p>
                         <p style="margin: 4px 0;"><b>Predikat Kualitas:</b> <span class="badge {badge_class(data_pilih['Predikat'])}">{p_pred}</span></p>
                         <p style="margin: 4px 0;"><b>Jumlah Ulasan:</b> {data_pilih.get('Jumlah Ulasan', 'N/A')}</p>
-                        <p style="margin: 8px 0 0 0;"><a href="{p_link}" target="_blank" style="text-decoration: none; color: #0284c7; font-weight: 600;">Buka Lokasi di Google Maps ↗</a></p>
+                        <p style="margin: 8px 0 0 0;"><a href="{p_link}" target="_blank" style="text-decoration: none; color: var(--teal-700); font-weight: 600;">Buka Lokasi di Google Maps ↗</a></p>
                     </div>
-                    <div style="flex: 1.5; min-width: 300px; background: #f8fafc; padding: 12px 16px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                        <p style="margin: 0 0 6px 0; font-weight: 700; color: #334155; font-size: 13px;">Informasi Ulasan Pengunjung:</p>
+                    <div style="flex: 1.5; min-width: 300px; background: var(--sand-100); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--sand-100);">
+                        <p style="margin: 0 0 6px 0; font-weight: 700; color: var(--ink-600); font-size: 13px;">Informasi Ulasan Pengunjung:</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 1:</b> {u1}</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 2:</b> {u2}</p>
                         <p style="margin: 3px 0; font-size: 12.5px;">• <b>Ulasan 3:</b> {u3}</p>
-                        <hr style="margin: 8px 0; border:0; border-top:1px solid #cbd5e1;">
+                        <hr style="margin: 8px 0; border:0; border-top:1px solid var(--sand-100);">
                         <p style="margin: 4px 0 0 0; font-size: 12px; color: #0369a1; font-style: italic;">{kesimpulan_nlp}</p>
                     </div>
                 </div>
@@ -823,10 +927,10 @@ else:
             st.markdown(
                 f"""
                         <div class="search-result-box" style="padding:15px; margin-bottom:10px; height:100%;">
-                            <h4 style="margin:0 0 4px 0; color:#0f172a;">{r['Nama Pantai']} <span style="font-size:13px; color:#0284c7; font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
+                            <h4 style="margin:0 0 4px 0; color:var(--teal-950);">{r['Nama Pantai']} <span style="font-size:13px; color:var(--teal-700); font-weight:normal;">({r['Jarak_Km']:.2f} km)</span></h4>
                             <p style="margin:2px 0; font-size:13px;">Provinsi: {r['Provinsi']} | Rating: {r['Rating Angka']} | Kualitas: <b>{r['Predikat'].title()}</b></p>
                             <p style="margin:12px 0 0 0;">
-                                <a href="{maps_url}" target="_blank" style="text-decoration:none; color:#0284c7; font-weight:600; font-size:12.5px; margin-right: 15px;">Buka Lokasi di Maps ↗</a>
+                                <a href="{maps_url}" target="_blank" style="text-decoration:none; color:var(--teal-700); font-weight:600; font-size:12.5px; margin-right: 15px;">Buka Lokasi di Maps ↗</a>
                                 <a href="{rute_url}" target="_blank" style="text-decoration:none; background-color:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-weight:600; font-size:12px;">Lihat Rute Navigasi ↗</a>
                             </p>
                         </div>
@@ -837,7 +941,7 @@ else:
           with col_card_img:
             st.markdown(
                 f"""
-                        <div style="background-image: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.5)), url('data:image/png;base64,{img_splash_b64}'); background-size: cover; background-position: center; border-radius: 12px; height: 112px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); border: 1px solid #cbd5e1; margin-bottom: 10px;">
+                        <div style="background-image: linear-gradient(rgba(6, 46, 44, 0.35), rgba(15, 155, 142, 0.4)), url('data:image/png;base64,{img_splash_b64}'); background-size: cover; background-position: center; border-radius: 12px; height: 112px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(6, 46, 44, 0.1); border: 1px solid var(--sand-100); margin-bottom: 10px;">
                             <span style="color: white; font-size: 11px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.6); text-align: center; padding: 0 8px;">🏖️ {r['Nama Pantai']}</span>
                         </div>
                         """,
@@ -892,11 +996,11 @@ else:
 
         popup_html = f"""
                 <div style="font-family: 'Segoe UI', sans-serif; width: 240px; font-size: 11.5px;">
-                    <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 13.5px;">{row['Nama Pantai']}</h4>
+                    <h4 style="margin: 0 0 4px 0; color: var(--teal-950); font-size: 13.5px;">{row['Nama Pantai']}</h4>
                     <p style="margin: 2px 0;"><b>Provinsi:</b> {row['Provinsi']}</p>
                     <p style="margin: 2px 0;"><b>Rating:</b> {row['Rating Angka']} {stars}</p>
                     <p style="margin: 2px 0 6px 0;"><b>Kualitas:</b> {predikat_title}</p>
-                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid #cbd5e1;">
+                    <hr style="margin: 4px 0; border: 0; border-top: 1px solid var(--sand-100);">
                     <p style="margin: 2px 0;"><b>Ulasan 1:</b> {u1}</p>
                     <p style="margin: 2px 0;"><b>Ulasan 2:</b> {u2}</p>
                     <p style="margin: 2px 0 6px 0;"><b>Ulasan 3:</b> {u3}</p>
@@ -1118,14 +1222,14 @@ else:
                 ),
                 color=alt.Color(
                     "Jumlah Ulasan:Q",
-                    scale=alt.Scale(scheme="blues"),
+                    scale=alt.Scale(range=["#bfe8e0", "#0a3d3d"]),
                     legend=None,
                 ),
                 tooltip=["Nama Pantai", "Provinsi", "Rating Angka", "Jumlah Ulasan"],
             )
             .properties(height=320, width="container")
             .configure_view(stroke=None)
-            .configure_axis(grid=True, gridColor="#e2e8f0")
+            .configure_axis(grid=True, gridColor="#d7e8e5")
         )
 
         st.altair_chart(chart, use_container_width=True)
@@ -1137,8 +1241,8 @@ else:
           with col_target:
             st.markdown(
                 f"""
-                        <div style="background: white; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
-                            <p style="margin:0 0 4px 0; font-weight:700; color:#0f172a; font-size:14px;">#{idx+1} {row_t5['Nama Pantai']}</p>
+                        <div style="background: white; border: 1px solid var(--sand-100); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(6,46,44,0.05);">
+                            <p style="margin:0 0 4px 0; font-weight:700; color:var(--teal-950); font-size:14px;">#{idx+1} {row_t5['Nama Pantai']}</p>
                             <p style="margin:0; font-size:12.5px; color:#475569;">⭐ Rating: <b>{row_t5['Rating Angka']}</b> | 💬 Ulasan: <b>{row_t5['Jumlah Ulasan']}</b> | Kualitas: <b>{row_t5['Predikat'].title()}</b></p>
                         </div>
                         """,
